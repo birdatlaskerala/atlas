@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Bird Atlas - Status</title>
+    <style type="text/css">
+        html, body, .container {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        .left {
+            width: 50%;
+            float: left;
+            height: 100%;
+        }
+        .right {
+            width: 50%;
+            float: right;
+            height: 100%;
+        }
+    </style>
+
+    <script type="text/javascript"
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjxmd8kV-I0IJl_0Pmlo-bluTt6s4YZxs"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="js/underscore-min.js"></script>
+    <script type="text/javascript" src="js/infobox_packed-1.19.js"></script>
+    <script type="text/javascript" src="js/birdcount.js"></script>
+    <script>
+        var mapData = [
+            {
+                mapSpreadSheetId: '1PbmjSAo_PLTyYTLzuWBmTx60IukjxjHLQRRe8usxxcA',
+                sheets: '1,2,3'
+            }, //thrissur
+            {
+                mapSpreadSheetId: '1QSOQ5E8u1ObPXVf1sWJonIEmgvHWnJbvmHu5khrxs5s',
+                sheets: '1,2,4'
+            } //alappuzha
+        ];
+        var maps = [];
+        $(window).load(function () {
+            _.each(mapData, function (mapMeta, idx) {
+                var map = new BirdCount.BirdMap({
+                    zoom: 10,
+                    mapContainerId: 'map-canvas-' + idx,
+                    mapSpreadSheetId: mapMeta.mapSpreadSheetId,
+                    sheets: mapMeta.sheets.split(',')
+                });
+                map.render();
+                maps.push(map);
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="container">
+    <div id="map-canvas-0" class="left"></div>
+    <div id="map-canvas-1" class="right"></div>
+    <div style="clear: both;"></div>
+</div>
+</body>
+</html>
