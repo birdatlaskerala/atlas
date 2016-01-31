@@ -8,12 +8,6 @@ var BirdCount = BirdCount || (function() {
     var $ = jQuery, //wp noConflicts $. Capture $ in this scope
         CELL_PATTERN = /([A-Z]+)(\d+)/,
         REVIEWED_PATTERN = ['yes', 'y', 'reviewed'],
-        infoBoxTemplate = _.template('<span><b><%=clusterName%></b></span>' +
-            '<%if (owner && !_.isEmpty(owner.trim())){%><br/><b>Owner</b>: <%=owner%><%}%>' +
-            '<%if (!_.isEmpty(listUrl["1"])){%><br/><a target="_blank" href="<%=listUrl["1"]%>">List1</a><%}%>' +
-            '<%if (!_.isEmpty(listUrl["2"])){%> <a target="_blank" href="<%=listUrl["2"]%>">List2</a><%}%>' +
-            '<%if (!_.isEmpty(listUrl["3"])){%> <a target="_blank" href="<%=listUrl["3"]%>">List3</a><%}%>' +
-            '<%if (!_.isEmpty(listUrl["4"])){%> <a target="_blank" href="<%=listUrl["4"]%>">List4</a><%}%>'),
 
         RectangleInfo = function(options) {
             this.options = _.extend({
@@ -31,7 +25,8 @@ var BirdCount = BirdCount || (function() {
             this.options = _.extend({
                     zoom: 12,
                     mapContainerId: 'map-canvas',
-                    mapSpreadSheetId: null
+                    mapSpreadSheetId: null,
+                    sheets: [1, 2, 3]  //default page indices. overriden with values in options that come from html
                 }, options);
 
             if (!this.options.mapSpreadSheetId) {
@@ -79,6 +74,25 @@ var BirdCount = BirdCount || (function() {
             } else {
                 return '0.60';
             }
+        },
+
+        getDisplayHtml: function() {
+            var content = '<span><b>' + this.options.clusterName + '</b>';
+            if (this.options.owner && !_.isEmpty(this.options.owner)) {
+                content += '<br/><b>Owner: </b>' + this.options.owner
+            }
+            var linkContent = '';
+            _.each(this.options.listUrl, function(value, key) {
+                value = value ? value.trim() : '';
+                if (!_.isEmpty(value)) {
+                    value = value.indexOf('http') == 0 ? value : 'http://ebird.org/ebird/view/checklist?subID=' + value;
+                    linkContent += ' <a target="_blank" href="' + value + '">' + key + '</a> ';
+                }
+            });
+            if (!_.isEmpty(linkContent)) {
+                content += '<br/>' + linkContent;
+            };
+            return content;
         }
     };
 
@@ -91,7 +105,7 @@ var BirdCount = BirdCount || (function() {
 
         render: function() {
             $.ajax({
-                    url: this.getMapDataUrl(1),
+                    url: this.getMapDataUrl(this.options.sheets[0]),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
@@ -138,7 +152,7 @@ var BirdCount = BirdCount || (function() {
 
         getStatusData: function() {
             $.ajax({
-                    url: this.getMapDataUrl(3),
+                    url: this.getMapDataUrl(this.options.sheets[2]),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
@@ -157,25 +171,14 @@ var BirdCount = BirdCount || (function() {
                     rectangleInfo.setValue('reviewed', row.G);
                     rectangleInfo.setValue('status', row.H);
                     rectangleInfo.setValue('listUrl', {
-                            1: this._fixPartialBirdListURL(row.C),
-                            2: this._fixPartialBirdListURL(row.D),
-                            3: this._fixPartialBirdListURL(row.E),
-                            4: this._fixPartialBirdListURL(row.F)
+                            1: row.C,
+                            2: row.D,
+                            3: row.E,
+                            4: row.F
                         });
                 }
             }, this);
             this._drawCoverageInfo();
-        },
-        
-        _fixPartialBirdListURL: function(url) {
-            if (!url) {
-                return '';
-            }
-            url = url.trim();
-            if (_.isEmpty(url)) {
-                return '';
-            }
-            return url.startsWith('http') ? url : 'http://ebird.org/ebird/view/checklist?subID=' + url
         },
 
         _drawCoverageInfo: function() {
@@ -215,8 +218,7 @@ var BirdCount = BirdCount || (function() {
         },
 
         _showInfoWindow: function(rectangleInfo) {
-            var content = infoBoxTemplate(rectangleInfo.options);
-            this.infoBox.setContent(content);
+            this.infoBox.setContent(rectangleInfo.getDisplayHtml());
             this.infoBox.setPosition(rectangleInfo.getValue('bounds').getCenter());
             this.infoBox.open(this.map);
         },
@@ -230,7 +232,7 @@ var BirdCount = BirdCount || (function() {
 
         getPlanningData: function() {
             $.ajax({
-                    url: this.getMapDataUrl(2),
+                    url: this.getMapDataUrl(this.options.sheets[1]),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
