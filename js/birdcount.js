@@ -8,6 +8,17 @@ var BirdCount = BirdCount || (function() {
     var $ = jQuery, //wp noConflicts $. Capture $ in this scope
         CELL_PATTERN = /([A-Z]+)(\d+)/,
         REVIEWED_PATTERN = ['yes', 'y', 'reviewed'],
+        infoBoxTemplate = _.template('<span><b><%=clusterName%></b></span>' +
+            '<%if (owner && !_.isEmpty(owner.trim())){%><br/><b>Owner</b>: <%=owner%><%}%>' +
+            '<%if (!_.isEmpty(listUrl["1"])){%><br/><a target="_blank" href="<%=listUrl["1"]%>">List1</a><%}%>' +
+            '<%if (!_.isEmpty(listUrl["2"])){%> <a target="_blank" href="<%=listUrl["2"]%>">List2</a><%}%>' +
+            '<%if (!_.isEmpty(listUrl["3"])){%> <a target="_blank" href="<%=listUrl["3"]%>">List3</a><%}%>' +
+            '<%if (!_.isEmpty(listUrl["4"])){%> <a target="_blank" href="<%=listUrl["4"]%>">List4</a><%}%>'),
+        kmlDescription = _.template('<%if (owner && !_.isEmpty(owner.trim())){%><b>Owner</b>: <%=owner%><%}%>' +
+            '<%if (!_.isEmpty(listUrl["1"])){%><br/><a target="_blank" href="<%=listUrl["1"]%>">List1</a><%}%>' +
+            '<%if (!_.isEmpty(listUrl["2"])){%><br/><a target="_blank" href="<%=listUrl["2"]%>">List2</a><%}%>' +
+            '<%if (!_.isEmpty(listUrl["3"])){%><br/><a target="_blank" href="<%=listUrl["3"]%>">List3</a><%}%>' +
+            '<%if (!_.isEmpty(listUrl["4"])){%><br/><a target="_blank" href="<%=listUrl["4"]%>">List4</a><%}%>'),
 
         RectangleInfo = function(options) {
             this.options = _.extend({
@@ -26,7 +37,7 @@ var BirdCount = BirdCount || (function() {
                     zoom: 12,
                     mapContainerId: 'map-canvas',
                     mapSpreadSheetId: null,
-                    sheets: [1, 2, 3]  //default page indices. overriden with values in options that come from html
+                    name: 'visualization'
                 }, options);
 
             if (!this.options.mapSpreadSheetId) {
@@ -74,25 +85,6 @@ var BirdCount = BirdCount || (function() {
             } else {
                 return '0.60';
             }
-        },
-
-        getDisplayHtml: function() {
-            var content = '<span><b>' + this.options.clusterName + '</b>';
-            if (this.options.owner && !_.isEmpty(this.options.owner)) {
-                content += '<br/><b>Owner: </b>' + this.options.owner
-            }
-            var linkContent = '';
-            _.each(this.options.listUrl, function(value, key) {
-                value = value ? value.trim() : '';
-                if (!_.isEmpty(value)) {
-                    value = value.indexOf('http') == 0 ? value : 'http://ebird.org/ebird/view/checklist?subID=' + value;
-                    linkContent += ' <a target="_blank" href="' + value + '">' + key + '</a> ';
-                }
-            });
-            if (!_.isEmpty(linkContent)) {
-                content += '<br/>' + linkContent;
-            };
-            return content;
         }
     };
 
@@ -105,7 +97,7 @@ var BirdCount = BirdCount || (function() {
 
         render: function() {
             $.ajax({
-                    url: this.getMapDataUrl(this.options.sheets[0]),
+                    url: this.getMapDataUrl(1),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
@@ -152,7 +144,7 @@ var BirdCount = BirdCount || (function() {
 
         getStatusData: function() {
             $.ajax({
-                    url: this.getMapDataUrl(this.options.sheets[2]),
+                    url: this.getMapDataUrl(3),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
@@ -171,14 +163,25 @@ var BirdCount = BirdCount || (function() {
                     rectangleInfo.setValue('reviewed', row.G);
                     rectangleInfo.setValue('status', row.H);
                     rectangleInfo.setValue('listUrl', {
-                            1: row.C,
-                            2: row.D,
-                            3: row.E,
-                            4: row.F
+                            1: this._fixPartialBirdListURL(row.C),
+                            2: this._fixPartialBirdListURL(row.D),
+                            3: this._fixPartialBirdListURL(row.E),
+                            4: this._fixPartialBirdListURL(row.F)
                         });
                 }
             }, this);
             this._drawCoverageInfo();
+        },
+        
+        _fixPartialBirdListURL: function(url) {
+            if (!url) {
+                return '';
+            }
+            url = url.trim();
+            if (_.isEmpty(url)) {
+                return '';
+            }
+            return url.startsWith('http') ? url : 'http://ebird.org/ebird/view/checklist?subID=' + url
         },
 
         _drawCoverageInfo: function() {
@@ -215,10 +218,12 @@ var BirdCount = BirdCount || (function() {
             }, this);
             this._showHideLabels();
             google.maps.event.addListener(this.map, "zoom_changed", _.bind(this._showHideLabels, this));
+            this._createExportButton();
         },
 
         _showInfoWindow: function(rectangleInfo) {
-            this.infoBox.setContent(rectangleInfo.getDisplayHtml());
+            var content = infoBoxTemplate(rectangleInfo.options);
+            this.infoBox.setContent(content);
             this.infoBox.setPosition(rectangleInfo.getValue('bounds').getCenter());
             this.infoBox.open(this.map);
         },
@@ -230,9 +235,126 @@ var BirdCount = BirdCount || (function() {
             }, this);
         },
 
+        _createExportButton: function() {
+            var exportControlDiv = document.createElement('div'),
+                controlUIContainer = document.createElement('div'),
+                controlUI = document.createElement('div');
+            exportControlDiv.className = "gmnoprint custom-control-container";
+            controlUIContainer.className = "gm-style-mtc";
+            exportControlDiv.appendChild(controlUIContainer);
+            controlUI.className = "custom-control";
+            controlUI.title = 'Export the KML for the Visualization';
+            controlUI.innerHTML = 'Export';
+            controlUIContainer.appendChild(controlUI);
+            exportControlDiv.index = 1;
+            google.maps.event.addDomListener(controlUI, 'click', _.bind(this._exportKml, this));
+            this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(exportControlDiv);
+        },
+
+        _addTextNode: function (parentNode, elem, value) {
+            var ownerDocument = parentNode.ownerDocument,
+                node = ownerDocument.createElement(elem),
+                txtNode =  ownerDocument.createTextNode("");
+            txtNode.nodeValue = value;
+            node.appendChild(txtNode);
+            parentNode.appendChild(node);
+        },
+
+        _addKmlStyles: function (documentNode, id, color) {
+            var ownerDocument = documentNode.ownerDocument,
+                styleNode = ownerDocument.createElement("Style"),
+                lineStyleNode = ownerDocument.createElement("LineStyle"),
+                polyStyleNode = ownerDocument.createElement("PolyStyle");
+            this._addTextNode(lineStyleNode, 'width', '1');
+            styleNode.appendChild(lineStyleNode);
+            this._addTextNode(polyStyleNode, 'color', color);
+            styleNode.appendChild(polyStyleNode);
+            styleNode.setAttribute("id", id);
+            documentNode.appendChild(styleNode);
+        },
+
+        polygonPathsFromBounds: function(bounds){
+            var path = new google.maps.MVCArray(),
+                ne = bounds.getNorthEast(),
+                sw = bounds.getSouthWest(),
+                pathString = '';
+            path.push(ne);
+            path.push(new google.maps.LatLng(sw.lat(), ne.lng()));
+            path.push(sw);
+            path.push(new google.maps.LatLng(ne.lat(), sw.lng()));
+            path.push(ne);
+            path.forEach(function(latLng, idx){
+                pathString += [latLng.lng(), latLng.lat(), 0].join(",");
+                pathString += ' ';
+            });
+            return pathString;
+        },
+
+        addPlacemark: function (documentNode, rectangleInfo) {
+            var ownerDocument = documentNode.ownerDocument,
+                placemarkNode = ownerDocument.createElement('Placemark'),
+                descriptionNode = ownerDocument.createElement('description'),
+                polygonNode = ownerDocument.createElement('Polygon'),
+                outerBoundaryNode = ownerDocument.createElement('outerBoundaryIs'),
+                linearRingNode = ownerDocument.createElement('LinearRing'),
+                pathString = this.polygonPathsFromBounds(rectangleInfo.options.bounds),
+                style = 'status-0',
+                description = kmlDescription(rectangleInfo.options),
+                descriptionNode = ownerDocument.createElement('description'),
+                descriptionCdata = ownerDocument.createCDATASection(description);
+            this._addTextNode(placemarkNode, 'name', rectangleInfo.options.subCell + ' ' + rectangleInfo.options.clusterName);
+            descriptionNode.appendChild(descriptionCdata);
+            placemarkNode.appendChild(descriptionNode);
+            if (rectangleInfo.isReviewed()) {
+                style = 'reviewed';
+            } else {
+                style = 'status-' + rectangleInfo.getValue('status');
+            }
+
+            this._addTextNode(placemarkNode, 'styleUrl', '#' + style);
+            this._addTextNode(linearRingNode, 'coordinates', pathString);
+            outerBoundaryNode.appendChild(linearRingNode);
+            polygonNode.appendChild(outerBoundaryNode);
+            placemarkNode.appendChild(polygonNode);
+            documentNode.appendChild(placemarkNode);
+        },
+
+        _exportKml: function(e) {
+            e.preventDefault();
+            var xmlString = '<kml xmlns="http://www.opengis.net/kml/2.2"><Document/></kml>',
+                parser = new DOMParser(),
+                xmlDoc = parser.parseFromString(xmlString, "text/xml"),
+                serializer = new XMLSerializer(),
+                pom = document.createElement('a'),
+                bb,
+                xmlString,
+                documentNode = xmlDoc.getElementsByTagName("Document")[0];
+
+            this._addTextNode(documentNode, 'name', this.options.name);
+            this._addKmlStyles(documentNode, 'reviewed', '99ff33ba');
+            this._addKmlStyles(documentNode, 'status-1', '99b0b0b0');
+            this._addKmlStyles(documentNode, 'status-2', '99808080');
+            this._addKmlStyles(documentNode, 'status-3', '99505050');
+            this._addKmlStyles(documentNode, 'status-4', '99202020');
+            this._addKmlStyles(documentNode, 'status-0', '00000000');
+
+            _(this.rectangleInfos).each(function(rectangleInfo){
+                this.addPlacemark(documentNode, rectangleInfo);
+            }, this);
+
+            xmlString = serializer.serializeToString(xmlDoc);
+            bb = new Blob([xmlString], {type: 'text/plain'});
+            pom.setAttribute('href', window.URL.createObjectURL(bb));
+            pom.setAttribute('download', this.options.name + '.kml');
+            pom.dataset.downloadurl = ['application/vnd.google-earth.kml+xml', pom.download, pom.href].join(':');
+            pom.draggable = true;
+            pom.classList.add('dragout');
+            pom.click();
+        },
+
         getPlanningData: function() {
             $.ajax({
-                    url: this.getMapDataUrl(this.options.sheets[1]),
+                    url: this.getMapDataUrl(2),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
