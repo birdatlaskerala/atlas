@@ -181,7 +181,7 @@ var BirdCount = BirdCount || (function() {
             if (_.isEmpty(url)) {
                 return '';
             }
-            return url.startsWith('http') ? url : 'http://ebird.org/ebird/view/checklist?subID=' + url
+            return /^http/.test(url) ? url : 'http://ebird.org/ebird/view/checklist?subID=' + url
         },
 
         _drawCoverageInfo: function() {
@@ -300,7 +300,6 @@ var BirdCount = BirdCount || (function() {
                 pathString = this.polygonPathsFromBounds(rectangleInfo.options.bounds),
                 style = 'status-0',
                 description = kmlDescription(rectangleInfo.options),
-                descriptionNode = ownerDocument.createElement('description'),
                 descriptionCdata = ownerDocument.createCDATASection(description);
             this._addTextNode(placemarkNode, 'name', rectangleInfo.options.subCell + ' ' + rectangleInfo.options.clusterName);
             descriptionNode.appendChild(descriptionCdata);
@@ -319,15 +318,11 @@ var BirdCount = BirdCount || (function() {
             documentNode.appendChild(placemarkNode);
         },
 
-        _exportKml: function(e) {
-            e.preventDefault();
+        createKml: function() {
             var xmlString = '<kml xmlns="http://www.opengis.net/kml/2.2"><Document/></kml>',
                 parser = new DOMParser(),
                 xmlDoc = parser.parseFromString(xmlString, "text/xml"),
                 serializer = new XMLSerializer(),
-                pom = document.createElement('a'),
-                bb,
-                xmlString,
                 documentNode = xmlDoc.getElementsByTagName("Document")[0];
 
             this._addTextNode(documentNode, 'name', this.options.name);
@@ -342,14 +337,25 @@ var BirdCount = BirdCount || (function() {
                 this.addPlacemark(documentNode, rectangleInfo);
             }, this);
 
-            xmlString = serializer.serializeToString(xmlDoc);
-            bb = new Blob([xmlString], {type: 'text/plain'});
-            pom.setAttribute('href', window.URL.createObjectURL(bb));
-            pom.setAttribute('download', this.options.name + '.kml');
-            pom.dataset.downloadurl = ['application/vnd.google-earth.kml+xml', pom.download, pom.href].join(':');
-            pom.draggable = true;
-            pom.classList.add('dragout');
-            pom.click();
+            return serializer.serializeToString(xmlDoc);
+        },
+
+        _exportKml: function(e) {
+            e.preventDefault();
+            var kmlString = this.createKml(),
+                bb = new Blob([kmlString], {type: 'text/plain'}),
+                url = window.URL.createObjectURL(bb),
+                a = document.createElement('a');
+
+            a.setAttribute('href', url);
+            a.setAttribute('download', this.options.name + '.kml');
+            a.setAttribute('style', 'display: none;');
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function(){
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
         },
 
         getPlanningData: function() {
