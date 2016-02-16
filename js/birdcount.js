@@ -91,6 +91,7 @@ var BirdCount = BirdCount || (function() {
     BirdMap.prototype = {
         options: null,
         map: null,
+        center: null,
         rectangleInfos: {},
         labels: [],
         infoBox: new google.maps.InfoWindow(),
@@ -107,6 +108,11 @@ var BirdCount = BirdCount || (function() {
                 });
         },
 
+        recenter: function() {
+            google.maps.event.trigger(this.map, 'resize');
+            this.map.setCenter(this.center);
+        },
+
         processCoordinates: function(entries) {
             var rows = this._parseRows(entries);
             this.map = this._createMap(rows);
@@ -121,10 +127,10 @@ var BirdCount = BirdCount || (function() {
                 bounds.extend(new google.maps.LatLng(row.C, row.B));
                 bounds.extend(new google.maps.LatLng(row.G, row.F));
             });
-
+            this.center = bounds.getCenter();
             return new google.maps.Map(document.getElementById(this.options.mapContainerId), {
                     zoom: this.options.zoom,
-                    center: bounds.getCenter(),
+                    center: this.center,
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 });
         },
