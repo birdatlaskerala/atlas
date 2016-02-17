@@ -27,7 +27,8 @@
             });
 
             var navbar = $("#navbar");
-            navbar.on("click", "a", null, function () {
+            navbar.on("click", "a", null, function (e) {
+                e.preventDefault();
                 navbar.collapse('hide');
             });
 
@@ -43,13 +44,7 @@
                  sheets: '1,2,4',
                  name: 'Alappuzha',
                  mapContainerId: 'alappuzha'
-                 } /*,
-                {
-                    mapSpreadSheetId: '1QSOQ5E8u1ObPXVf1sWJonIEmgvHWnJbvmHu5khrxs5s',
-                    sheets: '1,2,3',
-                    name: 'Ernakulam',
-                    mapContainerId: 'ernakulam'
-                }*/
+                 }
             ];
 
             _.each(mapData, function (mapMeta) {
@@ -86,9 +81,6 @@
                 <li role="presentation">
                     <a href="#alappuzha" role="tab" data-toggle="tab">Alappuzha</a>
                 </li>
-                <li role="presentation">
-                    <a href="#ernakulam" role="tab" data-toggle="tab">Ernakulam</a>
-                </li>
             </ul>
         </div>
     </div>
@@ -97,7 +89,6 @@
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane active map-container" id="thrissur"></div>
         <div role="tabpanel" class="tab-pane map-container" id="alappuzha"></div>
-        <div role="tabpanel" class="tab-pane map-container" id="ernakulam"></div>
     </div>
 </div>
 </body>

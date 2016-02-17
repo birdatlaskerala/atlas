@@ -1,18 +1,11 @@
-html, body {
+html, body, .map-parent, .map-parent>div, .map-container  {
     height: 100%;
-}
-
-.map-parent, .map-parent>div, .map-container {
-    height: 100%;
-}
-
-.container-fluid {
-    padding: 0;
 }
 
 .map-parent {
-    padding-bottom: 51px;
+    padding: 0 0 51px 0;
 }
+
 .navbar {
     margin: 0;
 }
@@ -20,6 +13,7 @@ html, body {
 .custom-control-container {
     margin: 10px;
 }
+
 .custom-control {
     cursor: pointer;
     direction: ltr;
