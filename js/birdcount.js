@@ -98,7 +98,7 @@ var BirdCount = BirdCount || (function() {
 
         render: function() {
             $.ajax({
-                    url: this.getMapDataUrl(1),
+                    url: this.getMapDataUrl(this.options.sheets[0]),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
@@ -139,18 +139,18 @@ var BirdCount = BirdCount || (function() {
             var ret = {};
             _(rows).each(function(row) {
                 ret[row.A] = new RectangleInfo({
-                        bounds: new google.maps.LatLngBounds(
-                            new google.maps.LatLng(row.C, row.B),
-                            new google.maps.LatLng(row.G, row.F)),
-                        subCell: row.A
-                    });
+                    bounds: new google.maps.LatLngBounds(
+                        new google.maps.LatLng(row.C, row.B),
+                        new google.maps.LatLng(row.G, row.F)),
+                    subCell: row.A
+                });
             });
             return ret;
         },
 
         getStatusData: function() {
             $.ajax({
-                    url: this.getMapDataUrl(3),
+                    url: this.getMapDataUrl(this.options.sheets[2]),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
@@ -162,7 +162,7 @@ var BirdCount = BirdCount || (function() {
 
         processStatusData: function(entries) {
             var rows = this._parseRows(entries);
-            _(rows).each(function(row) {
+            _(rows).each(function(row, idx) {
                 var rectangleInfo = this.rectangleInfos[row.A];
                 if (rectangleInfo) {
                     rectangleInfo.setValue('clusterName', row.B);
@@ -366,7 +366,7 @@ var BirdCount = BirdCount || (function() {
 
         getPlanningData: function() {
             $.ajax({
-                    url: this.getMapDataUrl(2),
+                    url: this.getMapDataUrl(this.options.sheets[1]),
                     jsonp: "callback",
                     dataType: "jsonp",
                     context: this,
