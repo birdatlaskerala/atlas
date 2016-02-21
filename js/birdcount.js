@@ -103,14 +103,19 @@ var BirdCount = BirdCount || (function() {
                     dataType: "jsonp",
                     context: this,
                     success: function(response) {
+                        if (!/^Coordinates/.test(response.feed.title.$t)) {
+                            $('.page-alert-box').modal('show');
+                        }
                         this.processCoordinates(response.feed.entry);
                     }
                 });
         },
 
         recenter: function() {
-            google.maps.event.trigger(this.map, 'resize');
-            this.map.setCenter(this.center);
+            if (this.map) {
+                google.maps.event.trigger(this.map, 'resize');
+                this.map.setCenter(this.center);
+            }
         },
 
         processCoordinates: function(entries) {
@@ -155,6 +160,9 @@ var BirdCount = BirdCount || (function() {
                     dataType: "jsonp",
                     context: this,
                     success: function(response) {
+                        if (!/^Birds/.test(response.feed.title.$t)) {
+                            $('.page-alert-box').modal('show');
+                        }
                         this.processStatusData(response.feed.entry);
                     }
                 });
@@ -371,6 +379,9 @@ var BirdCount = BirdCount || (function() {
                     dataType: "jsonp",
                     context: this,
                     success: function(response) {
+                        if (!/^Planning/.test(response.feed.title.$t)) {
+                            $('.page-alert-box').modal('show');
+                        }
                         this.processPlanningData(response.feed.entry);
                     }
                 });
@@ -413,6 +424,17 @@ var BirdCount = BirdCount || (function() {
     };
 
     return {
-        BirdMap: BirdMap
+        BirdMap: BirdMap,
+        createMap: function(options) {
+            var map = new BirdCount.BirdMap({
+                zoom: 10,
+                mapContainerId: options.mapContainerId,
+                mapSpreadSheetId: options.mapSpreadSheetId,
+                sheets: options.sheets.split(','),
+                name: options.name
+            });
+            map.render();
+            return map;
+        }
     };
 })();
