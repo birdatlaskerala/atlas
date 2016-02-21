@@ -23,7 +23,13 @@
             $('ul.nav a').click(function (e) {
                 e.preventDefault();
                 $(this).tab('show');
-                maps[this.hash].recenter();
+            });
+
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                var target = $(e.target).attr("href"),
+                        key = target.substring(1),
+                        map = getOrCreateMap(key);
+                map.recenter();
             });
 
             var navbar = $("#navbar");
@@ -32,32 +38,32 @@
                 navbar.collapse('hide');
             });
 
-            var mapData = [
-                {
+            var mapData = {
+                thrissur: {
                     mapSpreadSheetId: '1PbmjSAo_PLTyYTLzuWBmTx60IukjxjHLQRRe8usxxcA',
                     sheets: '1,2,3',
                     name: 'Thrissur',
                     mapContainerId: 'thrissur'
                 } ,
-                 {
+                alappuzha: {
                  mapSpreadSheetId: '1QSOQ5E8u1ObPXVf1sWJonIEmgvHWnJbvmHu5khrxs5s',
                  sheets: '1,2,3',
                  name: 'Alappuzha',
                  mapContainerId: 'alappuzha'
                  }
-            ];
+            };
 
-            _.each(mapData, function (mapMeta) {
-                var map = new BirdCount.BirdMap({
-                    zoom: 10,
-                    mapContainerId: mapMeta.mapContainerId,
-                    mapSpreadSheetId: mapMeta.mapSpreadSheetId,
-                    sheets: mapMeta.sheets.split(','),
-                    name: mapMeta.name
-                });
-                map.render();
-                maps['#' + mapMeta.mapContainerId] = map;
-            });
+            function getOrCreateMap(id) {
+                var map = maps[id];
+                if (!map) {
+                    map = BirdCount.createMap(mapData[id]);
+                    maps[id] = map;
+                }
+                return map;
+            }
+
+            //show first tab map.
+            getOrCreateMap('thrissur');
         });
     </script>
     <script>
@@ -98,6 +104,24 @@
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane active map-container" id="thrissur"></div>
         <div role="tabpanel" class="tab-pane map-container" id="alappuzha"></div>
+    </div>
+</div>
+<div class="modal fade page-alert-box" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Warning</h4>
+            </div>
+            <div class="modal-body">
+                <p>The sheets seem to be out of order. Please contact the administrator.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 </body>
