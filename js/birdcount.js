@@ -97,6 +97,9 @@ var BirdCount = BirdCount || (function() {
         infoBox: new google.maps.InfoWindow(),
 
         render: function() {
+            var sheetData = {},
+                drawMapAfter = _.after(3, _.bind(this.drawMap, this, sheetData));
+
             $.ajax({
                     url: this.getMapDataUrl(this.options.sheets[0]),
                     jsonp: "callback",
@@ -104,11 +107,52 @@ var BirdCount = BirdCount || (function() {
                     context: this,
                     success: function(response) {
                         if (!/^Coordinates/.test(response.feed.title.$t)) {
-                            $('.page-alert-box').modal('show');
+                            if(this.options.alert) {
+                                this.options.alert();
+                            }
                         }
-                        this.processCoordinates(response.feed.entry);
+                        sheetData['coordinates'] = this._parseRows(response.feed.entry);
+                        drawMapAfter();
                     }
                 });
+
+            $.ajax({
+                url: this.getMapDataUrl(this.options.sheets[2]),
+                jsonp: "callback",
+                dataType: "jsonp",
+                context: this,
+                success: function(response) {
+                    if (!/^Birds/.test(response.feed.title.$t)) {
+                        if(this.options.alert) {
+                            this.options.alert();
+                        }
+                    }
+                    sheetData['status'] = this._parseRows(response.feed.entry);
+                    drawMapAfter();
+                }
+            });
+
+            $.ajax({
+                url: this.getMapDataUrl(this.options.sheets[1]),
+                jsonp: "callback",
+                dataType: "jsonp",
+                context: this,
+                success: function(response) {
+                    if (!/^Planning/.test(response.feed.title.$t)) {
+                        if(this.options.alert) {
+                            this.options.alert();
+                        }
+                    }
+                    sheetData['planning'] = this._parseRows(response.feed.entry);
+                    drawMapAfter();
+                }
+            });
+        },
+
+        drawMap: function(sheetData) {
+            this.processCoordinates(sheetData['coordinates']);
+            this.processStatusData(sheetData['status']);
+            this.processPlanningData(sheetData['planning']);
         },
 
         recenter: function() {
@@ -118,12 +162,9 @@ var BirdCount = BirdCount || (function() {
             }
         },
 
-        processCoordinates: function(entries) {
-            var rows = this._parseRows(entries);
+        processCoordinates: function(rows) {
             this.map = this._createMap(rows);
             this.rectangleInfos = this._createRectangleInfo(rows);
-            this.getStatusData();
-            this.getPlanningData();
         },
 
         _createMap: function(rows) {
@@ -153,23 +194,7 @@ var BirdCount = BirdCount || (function() {
             return ret;
         },
 
-        getStatusData: function() {
-            $.ajax({
-                    url: this.getMapDataUrl(this.options.sheets[2]),
-                    jsonp: "callback",
-                    dataType: "jsonp",
-                    context: this,
-                    success: function(response) {
-                        if (!/^Birds/.test(response.feed.title.$t)) {
-                            $('.page-alert-box').modal('show');
-                        }
-                        this.processStatusData(response.feed.entry);
-                    }
-                });
-        },
-
-        processStatusData: function(entries) {
-            var rows = this._parseRows(entries);
+        processStatusData: function(rows) {
             _(rows).each(function(row, idx) {
                 var rectangleInfo = this.rectangleInfos[row.A];
                 if (rectangleInfo) {
@@ -186,7 +211,19 @@ var BirdCount = BirdCount || (function() {
             }, this);
             this._drawCoverageInfo();
         },
-        
+
+        processPlanningData: function(rows) {
+            rows = _(rows).filter(function(row) {
+                return row;
+            });
+            _(rows).each(function(row) {
+                var rectangleInfo = this.rectangleInfos[row.A];
+                if (rectangleInfo) {
+                    rectangleInfo.setValue('owner', row.E);
+                }
+            }, this);
+        },
+
         _fixPartialBirdListURL: function(url) {
             if (!url) {
                 return '';
@@ -372,34 +409,6 @@ var BirdCount = BirdCount || (function() {
             }, 100);
         },
 
-        getPlanningData: function() {
-            $.ajax({
-                    url: this.getMapDataUrl(this.options.sheets[1]),
-                    jsonp: "callback",
-                    dataType: "jsonp",
-                    context: this,
-                    success: function(response) {
-                        if (!/^Planning/.test(response.feed.title.$t)) {
-                            $('.page-alert-box').modal('show');
-                        }
-                        this.processPlanningData(response.feed.entry);
-                    }
-                });
-        },
-
-        processPlanningData: function(entries) {
-            var rows = this._parseRows(entries);
-            rows = _(rows).filter(function(row) {
-                return row;
-            });
-            _(rows).each(function(row) {
-                var rectangleInfo = this.rectangleInfos[row.A];
-                if (rectangleInfo) {
-                    rectangleInfo.setValue('owner', row.E);
-                }
-            }, this);
-        },
-
         _parseRows: function(entries) {
             var rows = [];
             _(entries).each(function(entry) {
@@ -431,7 +440,10 @@ var BirdCount = BirdCount || (function() {
                 mapContainerId: options.mapContainerId,
                 mapSpreadSheetId: options.mapSpreadSheetId,
                 sheets: options.sheets.split(','),
-                name: options.name
+                name: options.name,
+                alert: function() {
+                    $('.page-alert-box').modal('show');
+                }
             });
             map.render();
             return map;
