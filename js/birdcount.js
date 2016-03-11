@@ -80,11 +80,7 @@ var BirdCount = BirdCount || (function() {
         },
 
         getFillOpacity: function() {
-            if (!this.isReviewed() && this.getValue('status') == '0') {
-                return '0';
-            } else {
-                return '0.60';
-            }
+			return '0.60';
         }
     };
 
