@@ -379,7 +379,7 @@ var BirdCount = BirdCount || (function() {
             this._addKmlStyles(documentNode, 'status-2', '99808080');
             this._addKmlStyles(documentNode, 'status-3', '99505050');
             this._addKmlStyles(documentNode, 'status-4', '99202020');
-            this._addKmlStyles(documentNode, 'status-0', '00000000');
+            this._addKmlStyles(documentNode, 'status-0', '99ff8040');
 
             _(this.rectangleInfos).each(function(rectangleInfo){
                 this.addPlacemark(documentNode, rectangleInfo);
