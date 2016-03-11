@@ -75,7 +75,7 @@ var BirdCount = BirdCount || (function() {
                 case '4':
                     return '#202020';
                 default:
-                    return '#000000';
+                    return '#FF8040';
             }
         },
 
@@ -316,6 +316,7 @@ var BirdCount = BirdCount || (function() {
                 styleNode = ownerDocument.createElement("Style"),
                 lineStyleNode = ownerDocument.createElement("LineStyle"),
                 polyStyleNode = ownerDocument.createElement("PolyStyle");
+            this._addTextNode(lineStyleNode, 'color', '641400FF');
             this._addTextNode(lineStyleNode, 'width', '1');
             styleNode.appendChild(lineStyleNode);
             this._addTextNode(polyStyleNode, 'color', color);
