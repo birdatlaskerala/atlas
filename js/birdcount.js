@@ -196,6 +196,7 @@ var BirdCount = BirdCount || (function() {
             _(rows).each(function(row, idx) {
                 var rectangleInfo = this.rectangleInfos[row.A];
                 if (rectangleInfo) {
+                    rectangleInfo.setValue('clusterName', row.B);
                     rectangleInfo.setValue('reviewed', row.G);
                     rectangleInfo.setValue('status', row.H);
                     rectangleInfo.setValue('listUrl', {
@@ -208,7 +209,7 @@ var BirdCount = BirdCount || (function() {
             }, this);
             this._drawCoverageInfo();
         },
-		
+
         processPlanningData: function(rows) {
             rows = _(rows).filter(function(row) {
                 return row;
@@ -216,9 +217,8 @@ var BirdCount = BirdCount || (function() {
             _(rows).each(function(row) {
                 var rectangleInfo = this.rectangleInfos[row.A];
                 if (rectangleInfo) {
-                    rectangleInfo.setValue('clusterName', row.B);
-					rectangleInfo.setValue('site', row.C);
                     rectangleInfo.setValue('owner', row.F);
+					rectangleInfo.setValue('site', row.C);
                 }
             }, this);
         },
