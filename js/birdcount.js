@@ -208,7 +208,7 @@ var BirdCount = BirdCount || (function() {
             }, this);
             this._drawCoverageInfo();
         },
-
+		
         processPlanningData: function(rows) {
             rows = _(rows).filter(function(row) {
                 return row;
