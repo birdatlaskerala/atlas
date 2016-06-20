@@ -196,7 +196,6 @@ var BirdCount = BirdCount || (function() {
             _(rows).each(function(row, idx) {
                 var rectangleInfo = this.rectangleInfos[row.A];
                 if (rectangleInfo) {
-                    rectangleInfo.setValue('clusterName', row.B);
                     rectangleInfo.setValue('reviewed', row.G);
                     rectangleInfo.setValue('status', row.H);
                     rectangleInfo.setValue('listUrl', {
@@ -217,6 +216,7 @@ var BirdCount = BirdCount || (function() {
             _(rows).each(function(row) {
                 var rectangleInfo = this.rectangleInfos[row.A];
                 if (rectangleInfo) {
+                    rectangleInfo.setValue('clusterName', row.B);
                     rectangleInfo.setValue('owner', row.F);
 					rectangleInfo.setValue('site', row.C);
                 }
