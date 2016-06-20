@@ -9,7 +9,7 @@ var BirdCount = BirdCount || (function() {
         CELL_PATTERN = /([A-Z]+)(\d+)/,
         REVIEWED_PATTERN = ['yes', 'y', 'reviewed'],
         infoBoxTemplate = _.template('<span><b><%=clusterName%></b></span>' +
-			'<%if (site && !_.isEmpty(site.trim())){%><br/><b>Site</b>: <%=site%><%}%>' +
+            '<%if (site && !_.isEmpty(site.trim())){%><br/><b>Site</b>: <%=site%><%}%>' +
             '<%if (owner && !_.isEmpty(owner.trim())){%><br/><b>Owner</b>: <%=owner%><%}%>' +
             '<%if (!_.isEmpty(listUrl["1"])){%><br/><a target="_blank" href="<%=listUrl["1"]%>">List1</a><%}%>' +
             '<%if (!_.isEmpty(listUrl["2"])){%> <a target="_blank" href="<%=listUrl["2"]%>">List2</a><%}%>' +
@@ -26,7 +26,7 @@ var BirdCount = BirdCount || (function() {
                     subCell: null,
                     bounds: null,
                     clusterName: null,
-					site: null,
+                    site: null,
                     owner: null,
                     listUrl: {},
                     reviewed: 'no',
@@ -82,7 +82,7 @@ var BirdCount = BirdCount || (function() {
         },
 
         getFillOpacity: function() {
-			return '0.60';
+            return '0.60';
         }
     };
 
@@ -196,7 +196,6 @@ var BirdCount = BirdCount || (function() {
             _(rows).each(function(row, idx) {
                 var rectangleInfo = this.rectangleInfos[row.A];
                 if (rectangleInfo) {
-                    rectangleInfo.setValue('clusterName', row.B);
                     rectangleInfo.setValue('reviewed', row.G);
                     rectangleInfo.setValue('status', row.H);
                     rectangleInfo.setValue('listUrl', {
@@ -217,8 +216,9 @@ var BirdCount = BirdCount || (function() {
             _(rows).each(function(row) {
                 var rectangleInfo = this.rectangleInfos[row.A];
                 if (rectangleInfo) {
+                    rectangleInfo.setValue('clusterName', row.B);
                     rectangleInfo.setValue('owner', row.F);
-					rectangleInfo.setValue('site', row.C);
+                    rectangleInfo.setValue('site', row.C);
                 }
             }, this);
         },
