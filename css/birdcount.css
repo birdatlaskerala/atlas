@@ -33,11 +33,20 @@ html, body, .map-parent, .map-parent>div, .map-container  {
     border: 1px solid rgba(0, 0, 0, 0.14902);
     -webkit-box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
     box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
-    min-width: 28px;
+    min-width: 32px;
     font-weight: 500;
 }
 
 .custom-control:hover {
     font-weight: 900 !important;
     background-color: lightgray;
+}
+
+.checkbox-custom-control {
+    cursor: auto;
+}
+.checkbox-custom-control>label:hover {
+    font-weight: 900 !important;
+    background-color: lightgray;
+    cursor: pointer;
 }

@@ -91,6 +91,7 @@ var BirdCount = BirdCount || (function() {
         map: null,
         center: null,
         rectangleInfos: {},
+        clusterPolygons: null,
         labels: [],
         infoBox: new google.maps.InfoWindow(),
 
@@ -163,6 +164,42 @@ var BirdCount = BirdCount || (function() {
         processCoordinates: function(rows) {
             this.map = this._createMap(rows);
             this.rectangleInfos = this._createRectangleInfo(rows);
+        },
+
+        createClusterBoundaries: function() {
+            return _.chain(this.rectangleInfos)
+                .filter(function(rectangleInfo){
+                    return rectangleInfo.getValue('clusterName') != 'F';
+                })
+                .groupBy(function(rectangleInfo){
+                    return rectangleInfo.getValue('clusterName');
+                })
+                .map(function(rectanglesInCluster, clusterName) {
+                    var latLongs = [];
+                    _.each(rectanglesInCluster, function (rectangle) {
+                        var bounds = rectangle.getValue('bounds'),
+                            ne = bounds.getNorthEast(),
+                            sw = bounds.getSouthWest(),
+                            nw = new google.maps.LatLng(ne.lat(), sw.lng()),
+                            se = new google.maps.LatLng(sw.lat(), ne.lng());
+                        latLongs.push(sw, nw, se, ne);
+                    });
+                    return {
+                        clusterName: clusterName,
+                        polygon: new google.maps.Polygon({
+                            map: this.map,
+                            paths: this.convexHull(latLongs),
+                            fillColor: "#FF0000",
+                            strokeWidth: 1,
+                            fillOpacity: 0.10,
+                            strokeColor: "#0000FF",
+                            strokeOpacity: 0.25,
+                            zIndex: -1000,
+                            clickable: false
+                        })
+                    };
+                }, this)
+                .value();
         },
 
         _createMap: function(rows) {
@@ -268,7 +305,7 @@ var BirdCount = BirdCount || (function() {
             }, this);
             this._showHideLabels();
             google.maps.event.addListener(this.map, "zoom_changed", _.bind(this._showHideLabels, this));
-            this._createExportButton();
+            this._createCustomControls();
         },
 
         _showInfoWindow: function(rectangleInfo) {
@@ -285,19 +322,49 @@ var BirdCount = BirdCount || (function() {
             }, this);
         },
 
-        _createExportButton: function() {
+        clusterCheckboxClicked: function(e) {
+            if (e.target.checked) {
+                if (!this.clusterPolygons) {
+                    this.clusterPolygons = this.createClusterBoundaries();
+                } else {
+                    _.each(this.clusterPolygons, function(clusterPolygon){
+                        clusterPolygon.polygon.setMap(this.map);
+                    }, this);
+                }
+            } else {
+                _.each(this.clusterPolygons, function(clusterPolygon){
+                    clusterPolygon.polygon.setMap(null);
+                });
+            }
+        },
+
+        _createCustomControls: function() {
             var exportControlDiv = document.createElement('div'),
                 controlUIContainer = document.createElement('div'),
-                controlUI = document.createElement('div');
+                exportBtnDiv = document.createElement('div'),
+                chkBoxDiv = document.createElement('div'),
+                id = _.uniqueId('chk_'),
+                chkBox = $('<input/>', {'type' : 'checkbox', 'id': id}),
+                chkBoxLbl = $('<label/>', {'for': id, text: ' Clusters'});
             exportControlDiv.className = "gmnoprint custom-control-container";
             controlUIContainer.className = "gm-style-mtc";
             exportControlDiv.appendChild(controlUIContainer);
-            controlUI.className = "custom-control";
-            controlUI.title = 'Export the KML for the Visualization';
-            controlUI.innerHTML = 'Export';
-            controlUIContainer.appendChild(controlUI);
+
+            exportBtnDiv.className = "custom-control";
+            exportBtnDiv.title = 'Export the KML for the Visualization';
+            exportBtnDiv.innerHTML = 'Export';
+            controlUIContainer.appendChild(exportBtnDiv);
+
+            chkBoxDiv.className = "custom-control checkbox-custom-control";
+            chkBoxDiv.title = 'Show Clusters';
+            chkBoxDiv.appendChild(chkBox[0]);
+            chkBoxDiv.appendChild(chkBoxLbl[0]);
+            controlUIContainer.appendChild(chkBoxDiv);
+
             exportControlDiv.index = 1;
-            google.maps.event.addDomListener(controlUI, 'click', _.bind(this._exportKml, this));
+            google.maps.event.addDomListener(exportBtnDiv, 'click', _.bind(this._exportKml, this));
+            google.maps.event.addDomListener(chkBox[0], 'click', _.bind(this.clusterCheckboxClicked, this));
+
             this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(exportControlDiv);
         },
 
@@ -425,6 +492,31 @@ var BirdCount = BirdCount || (function() {
                 }
             });
             return rows;
+        },
+
+        convexHull: function(points) {
+            points.sort(function (a, b) {
+                return a.lat() != b.lat() ? a.lat() - b.lat() : a.lng() - b.lng();
+            });
+
+            var n = points.length;
+            var hull = [];
+
+            for (var i = 0; i < 2 * n; i++) {
+                var j = i < n ? i : 2 * n - 1 - i;
+                while (hull.length >= 2 && this.removeMiddle(hull[hull.length - 2], hull[hull.length - 1], points[j]))
+                    hull.pop();
+                hull.push(points[j]);
+            }
+
+            hull.pop();
+            return hull;
+        },
+
+        removeMiddle: function (a, b, c) {
+            var cross = (a.lat() - b.lat()) * (c.lng() - b.lng()) - (a.lng() - b.lng()) * (c.lat() - b.lat());
+            var dot = (a.lat() - b.lat()) * (c.lat() - b.lat()) + (a.lng() - b.lng()) * (c.lng() - b.lng());
+            return cross < 0 || cross == 0 && dot <= 0;
         },
 
         getMapDataUrl: function(page) {
