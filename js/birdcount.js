@@ -1,7 +1,5 @@
 /**
  * Author vj
- * http://www.vijaykonnackal.com
- *
  * Licensed under MIT license.
  */
 var BirdCount = BirdCount || (function() {
@@ -164,6 +162,9 @@ var BirdCount = BirdCount || (function() {
         processCoordinates: function(rows) {
             this.map = this._createMap(rows);
             this.rectangleInfos = this._createRectangleInfo(rows);
+            google.maps.event.addListenerOnce(this.map, 'idle', _.bind(function(){
+                $('#' + this.options.mapContainerId).removeClass("spinner");
+            }, this));
         },
 
         createClusterBoundaries: function() {
@@ -190,7 +191,7 @@ var BirdCount = BirdCount || (function() {
                             map: this.map,
                             paths: this.convexHull(latLongs),
                             fillColor: "#FF0000",
-                            strokeWidth: 1,
+                            strokeWeight: 1,
                             fillOpacity: 0.10,
                             strokeColor: "#0000FF",
                             strokeOpacity: 0.25,
