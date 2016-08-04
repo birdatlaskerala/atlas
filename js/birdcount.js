@@ -92,6 +92,7 @@ var BirdCount = BirdCount || (function() {
         clusterPolygons: null,
         labels: [],
         infoBox: new google.maps.InfoWindow(),
+        geoLocation: new GeolocationMarker(),
 
         render: function() {
             var sheetData = {},
@@ -323,6 +324,30 @@ var BirdCount = BirdCount || (function() {
             }, this);
         },
 
+        gotoCurrentLocation: function(locationChkBox) {
+            if (!locationChkBox.checked) {
+                $(locationChkBox).trigger('click');
+            }
+            _.delay(function(geoLocation, map){
+                var pos = geoLocation.getPosition();
+                if(pos) {
+                    map.panTo(pos);
+                }
+            }, 1000, this.geoLocation, this.map);
+        },
+
+        showLocation: function(e) {
+            if (e.target.checked) {
+                this.geoLocation.setMap(this.map);
+            } else {
+                this.geoLocation.setMap(null);
+            }
+        },
+
+        _recenterToDistrict: function() {
+            this.map.panTo(this.center);
+        },
+
         clusterCheckboxClicked: function(e) {
             if (e.target.checked) {
                 if (!this.clusterPolygons) {
@@ -340,33 +365,26 @@ var BirdCount = BirdCount || (function() {
         },
 
         _createCustomControls: function() {
-            var exportControlDiv = document.createElement('div'),
-                controlUIContainer = document.createElement('div'),
-                exportBtnDiv = document.createElement('div'),
-                chkBoxDiv = document.createElement('div'),
-                id = _.uniqueId('chk_'),
-                chkBox = $('<input/>', {'type' : 'checkbox', 'id': id}),
-                chkBoxLbl = $('<label/>', {'for': id, text: ' Clusters'});
-            exportControlDiv.className = "gmnoprint custom-control-container";
-            controlUIContainer.className = "gm-style-mtc";
-            exportControlDiv.appendChild(controlUIContainer);
-
-            exportBtnDiv.className = "custom-control";
-            exportBtnDiv.title = 'Export the KML for the Visualization';
-            exportBtnDiv.innerHTML = 'Export';
-            controlUIContainer.appendChild(exportBtnDiv);
-
-            chkBoxDiv.className = "custom-control checkbox-custom-control";
-            chkBoxDiv.title = 'Show Clusters';
-            chkBoxDiv.appendChild(chkBox[0]);
-            chkBoxDiv.appendChild(chkBoxLbl[0]);
-            controlUIContainer.appendChild(chkBoxDiv);
-
-            exportControlDiv.index = 1;
-            google.maps.event.addDomListener(exportBtnDiv, 'click', _.bind(this._exportKml, this));
-            google.maps.event.addDomListener(chkBox[0], 'click', _.bind(this.clusterCheckboxClicked, this));
-
-            this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(exportControlDiv);
+            var htmlFragmentStr =
+                '<div class="settings-dropdown dropdown"> \
+                  <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"> \
+                    <span class="glyphicon glyphicon-menu-hamburger"></span></button> \
+                  <ul class="dropdown-menu dropdown-menu-right"> \
+                    <li><button type="button" class="btn btn-sm exportKmlBtn" title="Export"><span class="glyphicon glyphicon-download-alt"></span></button> \
+                        <button type="button" class="btn btn-sm districtCenter" title="Go to Center of District"><span class="glyphicon glyphicon-record"></span></button> \
+                        <button type="button" class="btn btn-sm gotoCurrentLocation" title="Go to Current Location"><span class="glyphicon glyphicon-map-marker"></span></button> \
+                    </li> \
+                    <li><label><input type="checkbox" class="locationChkBox"/> Show Location</label></li> \
+                    <li><label><input type="checkbox" class="clusterChkBox"/> Show Clusters</label></li> \
+                  </ul> \
+                </div>',
+                htmlFragment = $(htmlFragmentStr);
+            $(htmlFragment).find(".exportKmlBtn").bind("click", _.bind(this._exportKml, this));
+            $(htmlFragment).find(".districtCenter").bind("click", _.bind(this._recenterToDistrict, this));
+            $(htmlFragment).find(".clusterChkBox").bind("click", _.bind(this.clusterCheckboxClicked, this));
+            $(htmlFragment).find(".locationChkBox").bind("click", _.bind(this.showLocation, this));
+            $(htmlFragment).find(".gotoCurrentLocation").bind("click", _.bind(this.gotoCurrentLocation, this, $(htmlFragment).find(".locationChkBox")[0]));
+            this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(htmlFragment[0]);
         },
 
         _addTextNode: function (parentNode, elem, value) {
