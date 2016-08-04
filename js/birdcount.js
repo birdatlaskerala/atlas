@@ -327,18 +327,20 @@ var BirdCount = BirdCount || (function() {
         gotoCurrentLocation: function(locationChkBox) {
             if (!locationChkBox.checked) {
                 $(locationChkBox).trigger('click');
+            } else {
+                _.delay(function(geoLocation, map){
+                    var pos = geoLocation.getPosition();
+                    if(pos) {
+                        map.panTo(pos);
+                    }
+                }, 1000, this.geoLocation, this.map);
             }
-            _.delay(function(geoLocation, map){
-                var pos = geoLocation.getPosition();
-                if(pos) {
-                    map.panTo(pos);
-                }
-            }, 1000, this.geoLocation, this.map);
         },
 
         showLocation: function(e) {
             if (e.target.checked) {
                 this.geoLocation.setMap(this.map);
+                this.gotoCurrentLocation(e.currentTarget);
             } else {
                 this.geoLocation.setMap(null);
             }
