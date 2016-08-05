@@ -1,14 +1,14 @@
 var GeoLocationMarker = GeoLocationMarker || (function() {
 
         var getLocationMarkers = [],
-
+            locationError = false,
             successCallback = function(position) {
                 _.each(getLocationMarkers, function(getLocationMarker){
                     getLocationMarker.setPosition(position);
                 });
             },
             errorCallback = function(positionError) {
-
+                locationError = true;
             },
 
             watchId = function() {
@@ -36,7 +36,7 @@ var GeoLocationMarker = GeoLocationMarker || (function() {
                 'draggable': false,
                 'flat': true,
                 'icon' : {
-                    'url' : '../images/flashball.gif',
+                    'url' : 'images/flashball.gif',
                     'size': new google.maps.Size(16, 16),
                     'scaledSize': new google.maps.Size(16, 16),
                     'origin': new google.maps.Point(0, 0),
@@ -60,7 +60,7 @@ var GeoLocationMarker = GeoLocationMarker || (function() {
             },
 
             isLocationAvailable: function() {
-                return watchId != null;
+                return watchId != null && !locationError;
             },
 
             panMapToCurrentPosition: function() {
