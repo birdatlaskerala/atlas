@@ -18,6 +18,18 @@ var BirdCount = BirdCount || (function() {
             '<%if (!_.isEmpty(listUrl["2"])){%><br/><a target="_blank" href="<%=listUrl["2"]%>">List2</a><%}%>' +
             '<%if (!_.isEmpty(listUrl["3"])){%><br/><a target="_blank" href="<%=listUrl["3"]%>">List3</a><%}%>' +
             '<%if (!_.isEmpty(listUrl["4"])){%><br/><a target="_blank" href="<%=listUrl["4"]%>">List4</a><%}%>'),
+        customMapControlTemplate = _.template('<div class="settings-dropdown dropdown"> \
+              <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"> \
+                <span class="glyphicon glyphicon-menu-hamburger"></span></button> \
+              <ul class="dropdown-menu dropdown-menu-right"> \
+                <li><button type="button" class="btn btn-sm exportKmlBtn" title="Export"><span class="glyphicon glyphicon-download-alt"></span></button> \
+                    <%if (locationAvailable){%><button type="button" class="btn btn-sm gotoCurrentLocation" title="Go to Current Location"><span class="glyphicon glyphicon-record"></span></button><%}%> \
+                    <button type="button" class="btn btn-sm districtCenter" title="Go to Center of District"><span class="glyphicon glyphicon-flag"></span></button> \
+                </li> \
+                <%if (locationAvailable){%><li><label><input type="checkbox" class="locationChkBox"/> Show Location</label></li><%}%> \
+                <li><label><input type="checkbox" class="clusterChkBox"/> Show Clusters</label></li> \
+              </ul> \
+            </div>'),
 
         RectangleInfo = function(options) {
             this.options = _.extend({
@@ -92,7 +104,8 @@ var BirdCount = BirdCount || (function() {
         clusterPolygons: null,
         labels: [],
         infoBox: new google.maps.InfoWindow(),
-        geoLocation: new GeolocationMarker(),
+        customMapControls: null,
+        geoLocation : new GeoLocationMarker.GeoLocationMarker(),
 
         render: function() {
             var sheetData = {},
@@ -324,23 +337,16 @@ var BirdCount = BirdCount || (function() {
             }, this);
         },
 
-        gotoCurrentLocation: function(locationChkBox) {
-            if (!locationChkBox.checked) {
-                $(locationChkBox).trigger('click');
-            } else {
-                _.delay(function(geoLocation, map){
-                    var pos = geoLocation.getPosition();
-                    if(pos) {
-                        map.panTo(pos);
-                    }
-                }, 1000, this.geoLocation, this.map);
-            }
+        gotoCurrentLocation: function() {
+            this.customMapControls.find(".locationChkBox").prop("checked", true);
+            this.geoLocation.setMap(this.map);
+            this.geoLocation.panMapToCurrentPosition();
         },
 
         showLocation: function(e) {
             if (e.target.checked) {
                 this.geoLocation.setMap(this.map);
-                this.gotoCurrentLocation(e.currentTarget);
+                this.geoLocation.panMapToCurrentPosition();
             } else {
                 this.geoLocation.setMap(null);
             }
@@ -367,26 +373,15 @@ var BirdCount = BirdCount || (function() {
         },
 
         _createCustomControls: function() {
-            var htmlFragmentStr =
-                '<div class="settings-dropdown dropdown"> \
-                  <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"> \
-                    <span class="glyphicon glyphicon-menu-hamburger"></span></button> \
-                  <ul class="dropdown-menu dropdown-menu-right"> \
-                    <li><button type="button" class="btn btn-sm exportKmlBtn" title="Export"><span class="glyphicon glyphicon-download-alt"></span></button> \
-                        <button type="button" class="btn btn-sm districtCenter" title="Go to Center of District"><span class="glyphicon glyphicon-record"></span></button> \
-                        <button type="button" class="btn btn-sm gotoCurrentLocation" title="Go to Current Location"><span class="glyphicon glyphicon-map-marker"></span></button> \
-                    </li> \
-                    <li><label><input type="checkbox" class="locationChkBox"/> Show Location</label></li> \
-                    <li><label><input type="checkbox" class="clusterChkBox"/> Show Clusters</label></li> \
-                  </ul> \
-                </div>',
-                htmlFragment = $(htmlFragmentStr);
-            $(htmlFragment).find(".exportKmlBtn").bind("click", _.bind(this._exportKml, this));
-            $(htmlFragment).find(".districtCenter").bind("click", _.bind(this._recenterToDistrict, this));
-            $(htmlFragment).find(".clusterChkBox").bind("click", _.bind(this.clusterCheckboxClicked, this));
-            $(htmlFragment).find(".locationChkBox").bind("click", _.bind(this.showLocation, this));
-            $(htmlFragment).find(".gotoCurrentLocation").bind("click", _.bind(this.gotoCurrentLocation, this, $(htmlFragment).find(".locationChkBox")[0]));
-            this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(htmlFragment[0]);
+            this.customMapControls = $(customMapControlTemplate({
+                locationAvailable : this.geoLocation.isLocationAvailable()
+            }));
+            this.customMapControls.find(".exportKmlBtn").bind("click", _.bind(this._exportKml, this));
+            this.customMapControls.find(".districtCenter").bind("click", _.bind(this._recenterToDistrict, this));
+            this.customMapControls.find(".clusterChkBox").bind("click", _.bind(this.clusterCheckboxClicked, this));
+            this.customMapControls.find(".locationChkBox").bind("click", _.bind(this.showLocation, this));
+            this.customMapControls.find(".gotoCurrentLocation").bind("click", _.bind(this.gotoCurrentLocation, this));
+            this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.customMapControls[0]);
         },
 
         _addTextNode: function (parentNode, elem, value) {
