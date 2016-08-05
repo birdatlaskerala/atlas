@@ -25,3 +25,8 @@ html, body, .map-parent, .map-parent>div, .map-container  {
 .settings-dropdown li {
     padding-left: 5px;
 }
+
+.settings-dropdown label {
+    font-size: small;
+    font-weight: normal;
+}
