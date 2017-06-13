@@ -15,7 +15,6 @@
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjxmd8kV-I0IJl_0Pmlo-bluTt6s4YZxs"></script>
     <script type="text/javascript" src="js/underscore-min.js"></script>
     <script type="text/javascript" src="js/infobox_packed-1.19.js"></script>
-    <script type="text/javascript" src="js/location-marker.js"></script>
     <script type="text/javascript" src="js/birdcount.js"></script>
     <script>
         $(window).load(function(){
@@ -24,77 +23,112 @@
                 e.preventDefault();
                 $(this).tab('show');
             });
-
             $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 var target = $(e.target).attr("href"),
                         key = target.substring(1),
                         map = getOrCreateMap(key);
                 map.recenter();
             });
-
             var navbar = $("#navbar");
             navbar.on("click", "a", null, function (e) {
                 e.preventDefault();
                 navbar.collapse('hide');
             });
-
             var mapData = {
                 thrissur: {
-                    mapSpreadSheetId: '1U-XAkS3o9NpBAMJXn5V-hLEpi8w5Sg1QdOC9gk7j-Ng',
+                    mapSpreadSheetId: '1IKx7zUs8ZYKHkx6BwN2Lt8zfpSAlpkGC56mjFuk_DUY',
+<!--                mapSpreadSheetId: '1PbmjSAo_PLTyYTLzuWBmTx60IukjxjHLQRRe8usxxcA', -->
                     sheets: '1,2,3',
                     name: 'Thrissur',
                     mapContainerId: 'thrissur'
                 },
                 alappuzha: {
-                    mapSpreadSheetId: '1QSOQ5E8u1ObPXVf1sWJonIEmgvHWnJbvmHu5khrxs5s',
+                    mapSpreadSheetId: '1mqJ72hWsrSMAkkwG2rhJVo41OWfD1-mJZ3ytntt23Rs',
+<!--                mapSpreadSheetId: '1QSOQ5E8u1ObPXVf1sWJonIEmgvHWnJbvmHu5khrxs5s', -->
                     sheets: '1,2,3',
                     name: 'Alappuzha',
                     mapContainerId: 'alappuzha'
                 },
                 palakkad: {
-                    mapSpreadSheetId: '1QdYbm063-cA49snGsDyW_scH165zjiK6_TDER68QMAk',
+                    mapSpreadSheetId: '1F9iMxso21ZH2ScSDeHqg8-884AXCTYCeWdc8sVeHUc4',
+<!--                mapSpreadSheetId: '1QdYbm063-cA49snGsDyW_scH165zjiK6_TDER68QMAk', -->
                     sheets: '1,2,3',
                     name: 'Palakkad',
                     mapContainerId: 'palakkad'
                 },
                 thiruvananthapuram: {
-                    mapSpreadSheetId: '1rfkshBzNekV0orcDE6S4HJvATqzaWHXIaG2slvTVWDE',
+                    mapSpreadSheetId: '1fn7LLv7qZItaluKYQbqYE-VseCRTa7o2XrQCll21X4A',
+<!--                mapSpreadSheetId: '1rfkshBzNekV0orcDE6S4HJvATqzaWHXIaG2slvTVWDE', -->
                     sheets: '1,2,3',
                     name: 'Thiruvananthapuram',
                     mapContainerId: 'thiruvananthapuram'
                 },
                 kannur: {
-                    mapSpreadSheetId: '1qHRkbuoVjyuxu_QFvvGMq0G9gKffxSuG_iqrjHECHdQ',
+                    mapSpreadSheetId: '1wfkAnFl5d8vg2FOPBUJCbwcpii_Eifm2hF_IUjHxnZ8',
+<!--            	mapSpreadSheetId: '1qHRkbuoVjyuxu_QFvvGMq0G9gKffxSuG_iqrjHECHdQ', -->
                     sheets: '1,2,3',
                     name: 'Kannur',
                     mapContainerId: 'kannur'
                 },
                 kozhikode: {
-                    mapSpreadSheetId: '1Jdf3BR4yt_Euzhbh4h89zOPhuiBrK2EySiD9cqYSgQU',
+                    mapSpreadSheetId: '1vUjuwCvB11L16PVxqq7KQSzsuqHIPc5FtjoLXqnis18',
+<!--                mapSpreadSheetId: '1Jdf3BR4yt_Euzhbh4h89zOPhuiBrK2EySiD9cqYSgQU', -->
                     sheets: '1,2,3',
                     name: 'Kozhikode',
                     mapContainerId: 'kozhikode'
                 },
                 wayanad: {
-                    mapSpreadSheetId: '1mThngQVkUxjNF5RwTytFNsLVdGyD5hHrw7XgQW_iABQ',
+                    mapSpreadSheetId: '1rL5mTDtzk-Ta8th5-_tjjL-GEWaWvKPbPQ6GzU8N0Po',
+<!--                mapSpreadSheetId: '1mThngQVkUxjNF5RwTytFNsLVdGyD5hHrw7XgQW_iABQ', -->
                     sheets: '1,2,3',
                     name: 'Wayanad',
                     mapContainerId: 'wayanad'
                 },
-                ernakulam: {
-                    mapSpreadSheetId: '1ONGh5uzNc8VUiAP9wVgpLsYji4qgsy-yLZUSctR8t4w',
+                ernakulam: {				
+                    mapSpreadSheetId: '1UtKQEVIBvsgusNDTzhFjf4Rk-cXiR5uKhSyzynKuWnk',
+<!--                mapSpreadSheetId: '1ONGh5uzNc8VUiAP9wVgpLsYji4qgsy-yLZUSctR8t4w', -->
                     sheets: '1,2,3',
                     name: 'Ernakulam',
                     mapContainerId: 'ernakulam'
                 },
+                kasaragod: {
+                    mapSpreadSheetId: '1JvON1bO7e4iUx3MGS-gSTwKpZJaK57KNoQMPRa4swPg',
+                    sheets: '1,2,3',
+                    name: 'Kasaragod',
+                    mapContainerId: 'kasaragod'
+                },
+                malappuram: {
+                    mapSpreadSheetId: '1zpycP6CjULjKyt1ruOM19DLOLtQ7oy5cCkQ_94uHvn4',
+                    sheets: '1,2,3',
+                    name: 'Malappuram',
+                    mapContainerId: 'malappuram'
+                },
+                idukki: {
+                    mapSpreadSheetId: '1ll9S8Arf4oDqe4L0sWwWRr9T1T7KrHiR8gVclBLRXeY',
+                    sheets: '1,2,3',
+                    name: 'Idukki',
+                    mapContainerId: 'idukki'
+                },
+                kottayam: {
+                    mapSpreadSheetId: '1K33Vi89EvvyxBEm3jqYnU_tjPRW47jF3JhBSr6bUIp8',
+                    sheets: '1,2,3',
+                    name: 'Kottayam',
+                    mapContainerId: 'kottayam'
+                },
+                kollam: {
+                    mapSpreadSheetId: '15-w6n07I5y-VhtKsIOrkO1XggRxVklng373-3opL9Po',
+                    sheets: '1,2,3',
+                    name: 'Kollam',
+                    mapContainerId: 'kollam'
+                },
                 pathanamthitta: {
-                    mapSpreadSheetId: '1kfRm4KVFgWauEiQ7rdYNMgBWIkw0yeiwOBdcYiINSJ8',
+                    mapSpreadSheetId: '1NvPSvndk6EUBMkAlAEyYlOylKU6ILQhipFzIbO6cCks',
+<!--                mapSpreadSheetId: '1kfRm4KVFgWauEiQ7rdYNMgBWIkw0yeiwOBdcYiINSJ8', -->
                     sheets: '1,2,3',
                     name: 'Pathanamthitta',
                     mapContainerId: 'pathanamthitta'
                 }
             };
-
             function getOrCreateMap(id) {
                 var map = maps[id];
                 if (!map) {
@@ -103,9 +137,8 @@
                 }
                 return map;
             }
-
             //show first tab map.
-            getOrCreateMap('thrissur');
+            getOrCreateMap('thiruvananthapuram');
         });
     </script>
     <script>
@@ -113,7 +146,6 @@
                     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
                 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
         })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
         ga('create', 'UA-74080161-1', 'auto');
         ga('send', 'pageview');
     </script>
@@ -133,19 +165,34 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav nav-pills">
                 <li role="presentation" class="active">
-                    <a href="#thrissur" role="tab" data-toggle="tab">Thrissur</a>
+                    <a href="#thiruvananthapuram" role="tab" data-toggle="tab">Thiruvananthapuram</a>
                 </li>
                 <li role="presentation">
+                    <a href="#kollam" role="tab" data-toggle="tab">Kollam</a>
+                </li>				
+                <li role="presentation">
+                    <a href="#pathanamthitta" role="tab" data-toggle="tab">Pathanamthitta</a>
+                </li>				
+                <li role="presentation">
                     <a href="#alappuzha" role="tab" data-toggle="tab">Alappuzha</a>
+                </li>
+                <li role="presentation">
+                    <a href="#kottayam" role="tab" data-toggle="tab">Kottayam</a>
+                </li>				
+                <li role="presentation">
+                    <a href="#idukki" role="tab" data-toggle="tab">Idukki</a>
+                </li>				
+                <li role="presentation">
+                    <a href="#ernakulam" role="tab" data-toggle="tab">Ernakulam</a>
+                </li>				
+                <li role="presentation">
+                    <a href="#thrissur" role="tab" data-toggle="tab">Thrissur</a>
                 </li>
                 <li role="presentation">
                     <a href="#palakkad" role="tab" data-toggle="tab">Palakkad</a>
                 </li>				
                 <li role="presentation">
-                    <a href="#thiruvananthapuram" role="tab" data-toggle="tab">Thiruvananthapuram</a>
-                </li>				
-                <li role="presentation">
-                    <a href="#kannur" role="tab" data-toggle="tab">Kannur</a>
+                    <a href="#malappuram" role="tab" data-toggle="tab">Malappuram</a>
                 </li>				
                 <li role="presentation">
                     <a href="#kozhikode" role="tab" data-toggle="tab">Kozhikode</a>
@@ -154,10 +201,10 @@
                     <a href="#wayanad" role="tab" data-toggle="tab">Wayanad</a>
                 </li>				
                 <li role="presentation">
-                    <a href="#ernakulam" role="tab" data-toggle="tab">Ernakulam</a>
+                    <a href="#kannur" role="tab" data-toggle="tab">Kannur</a>
                 </li>				
                 <li role="presentation">
-                    <a href="#pathanamthitta" role="tab" data-toggle="tab">Pathanamthitta</a>
+                    <a href="#kasaragod" role="tab" data-toggle="tab">Kasaragod</a>
                 </li>				
             </ul>
         </div>
@@ -165,15 +212,20 @@
 </nav>
 <div class="map-parent container-fluid">
     <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active spinner map-container" id="thrissur"></div>
-        <div role="tabpanel" class="tab-pane map-container spinner" id="alappuzha"></div>
-		<div role="tabpanel" class="tab-pane map-container spinner" id="palakkad"></div>
-		<div role="tabpanel" class="tab-pane map-container spinner" id="thiruvananthapuram"></div>
-		<div role="tabpanel" class="tab-pane map-container spinner" id="kannur"></div>
-		<div role="tabpanel" class="tab-pane map-container spinner" id="kozhikode"></div>
-		<div role="tabpanel" class="tab-pane map-container spinner" id="wayanad"></div>
-		<div role="tabpanel" class="tab-pane map-container spinner" id="ernakulam"></div>
-		<div role="tabpanel" class="tab-pane map-container spinner" id="pathanamthitta"></div>
+        <div role="tabpanel" class="tab-pane active map-container" id="thiruvananthapuram"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="kollam"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="pathanamthitta"></div>
+        <div role="tabpanel" class="tab-pane map-container" id="alappuzha"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="kottayam"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="idukki"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="ernakulam"></div>
+        <div role="tabpanel" class="tab-pane map-container" id="thrissur"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="palakkad"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="malappuram"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="kozhikode"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="wayanad"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="kannur"></div>
+		<div role="tabpanel" class="tab-pane map-container" id="kasaragod"></div>
     </div>
 </div>
 <div class="modal fade page-alert-box" tabindex="-1" role="dialog">
@@ -193,3 +245,5 @@
 </div>
 </body>
 </html>
+Contact GitHub API Training Shop Blog About
+© 2017 GitHub, Inc. Terms Privacy Security Status Help
