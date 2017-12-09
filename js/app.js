@@ -1,6 +1,6 @@
-(function () {
+(function ($) {
 
-    var App = {
+    var BirdMaps = {
         maps: {},
 
         getOrCreateMap: function (id) {
@@ -13,30 +13,29 @@
         },
 
         init: function () {
-            var self = this;
-            $('ul.nav a').click(function (e) {
-                e.preventDefault();
-                $(this).tab('show');
-            });
-
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                var target = $(e.target).attr("href"),
-                    key = target.substring(1),
-                    map = self.getOrCreateMap(key);
-                map.recenter();
-            });
-
             var navbar = $("#navbar");
-            navbar.on("click", "a", null, function (e) {
-                e.preventDefault();
+            $('ul.nav a').click(function (e) {
+                app.setLocation($(this).attr('href'));
                 navbar.collapse('hide');
             });
         }
     };
 
-    $(window).load(function () {
-        App.init();
-        //show first tab map.
-        App.getOrCreateMap('thiruvananthapuram');
+    var app = $.sammy('#main', function () {
+        this.get('#/', function (context) {
+            this.redirect("#/kerala/thiruvananthapuram");
+        });
+
+        this.get('#/kerala/:district', function (context) {
+            var district = this.params['district'],
+                map = BirdMaps.getOrCreateMap(district);
+            $('ul.nav a[data-target="#' + district + '"]').tab('show');
+            map.recenter();
+        });
     });
-})();
+
+    $(window).load(function () {
+        BirdMaps.init();
+        app.run('#/');
+    });
+})(jQuery);

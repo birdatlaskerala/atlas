@@ -4,18 +4,12 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
     <title>Dashboard - Kerala Bird Atlas</title>
-
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
-          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="css/birdcount.css">
-
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
-            integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-    <script type="text/javascript"
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjxmd8kV-I0IJl_0Pmlo-bluTt6s4YZxs"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjxmd8kV-I0IJl_0Pmlo-bluTt6s4YZxs"></script>
     <script type="text/javascript" src="js/underscore-min.js"></script>
     <script type="text/javascript" src="js/sammyjs-0.7.6.js"></script>
     <script type="text/javascript" src="js/infobox_packed-1.19.js"></script>
@@ -115,51 +109,51 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Kerala Bird Atlas</a>
+            <a class="navbar-brand" href="#/">Kerala Bird Atlas</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav nav-pills">
-                <li role="presentation" class="active">
-                    <a href="#thiruvananthapuram" role="tab" data-toggle="tab">Thiruvananthapuram</a>
+                <li role="presentation">
+                    <a href="#/kerala/thiruvananthapuram" role="tab" data-target="#thiruvananthapuram" data-toggle="tab">Thiruvananthapuram</a>
                 </li>
                 <li role="presentation">
-                    <a href="#kollam" role="tab" data-toggle="tab">Kollam</a>
+                    <a href="#/kerala/kollam" role="tab" data-target="#kollam" data-toggle="tab">Kollam</a>
                 </li>
                 <li role="presentation">
-                    <a href="#pathanamthitta" role="tab" data-toggle="tab">Pathanamthitta</a>
+                    <a href="#/kerala/pathanamthitta" role="tab" data-target="#pathanamthitta" data-toggle="tab">Pathanamthitta</a>
                 </li>
                 <li role="presentation">
-                    <a href="#alappuzha" role="tab" data-toggle="tab">Alappuzha</a>
+                    <a href="#/kerala/alappuzha" role="tab" data-target="#pathanamthitta" data-toggle="tab">Alappuzha</a>
                 </li>
                 <li role="presentation">
-                    <a href="#kottayam" role="tab" data-toggle="tab">Kottayam</a>
+                    <a href="#/kerala/kottayam" role="tab" data-target="#kottayam" data-toggle="tab">Kottayam</a>
                 </li>
                 <li role="presentation">
-                    <a href="#idukki" role="tab" data-toggle="tab">Idukki</a>
+                    <a href="#/kerala/idukki" role="tab" data-target="#idukki" data-toggle="tab">Idukki</a>
                 </li>
                 <li role="presentation">
-                    <a href="#ernakulam" role="tab" data-toggle="tab">Ernakulam</a>
+                    <a href="#/kerala/ernakulam" role="tab" data-target="#ernakulam" data-toggle="tab">Ernakulam</a>
                 </li>
                 <li role="presentation">
-                    <a href="#thrissur" role="tab" data-toggle="tab">Thrissur</a>
+                    <a href="#/kerala/thrissur" role="tab" data-target="#thrissur" data-toggle="tab">Thrissur</a>
                 </li>
                 <li role="presentation">
-                    <a href="#palakkad" role="tab" data-toggle="tab">Palakkad</a>
+                    <a href="#/kerala/palakkad" role="tab" data-target="#palakkad" data-toggle="tab">Palakkad</a>
                 </li>
                 <li role="presentation">
-                    <a href="#malappuram" role="tab" data-toggle="tab">Malappuram</a>
+                    <a href="#/kerala/malappuram" role="tab" data-target="#malappuram" data-toggle="tab">Malappuram</a>
                 </li>
                 <li role="presentation">
-                    <a href="#kozhikode" role="tab" data-toggle="tab">Kozhikode</a>
+                    <a href="#/kerala/kozhikode" role="tab" data-target="#kozhikode" data-toggle="tab">Kozhikode</a>
                 </li>
                 <li role="presentation">
-                    <a href="#wayanad" role="tab" data-toggle="tab">Wayanad</a>
+                    <a href="#/kerala/wayanad" role="tab" data-target="#wayanad" data-toggle="tab">Wayanad</a>
                 </li>
                 <li role="presentation">
-                    <a href="#kannur" role="tab" data-toggle="tab">Kannur</a>
+                    <a href="#/kerala/kannur" role="tab" data-target="#kannur" data-toggle="tab">Kannur</a>
                 </li>
                 <li role="presentation">
-                    <a href="#kasaragod" role="tab" data-toggle="tab">Kasaragod</a>
+                    <a href="#/kerala/kasaragod" role="tab" data-target="#kasaragod" data-toggle="tab">Kasaragod</a>
                 </li>
             </ul>
         </div>
