@@ -184,6 +184,7 @@ var BirdCount = BirdCount || (function() {
         createClusterBoundaries: function() {
             return _.chain(this.rectangleInfos)
                 .filter(function(rectangleInfo){
+                    //exclude forest cells
                     return rectangleInfo.getValue('clusterName') != 'F';
                 })
                 .groupBy(function(rectangleInfo){
@@ -435,7 +436,7 @@ var BirdCount = BirdCount || (function() {
                 style = 'status-0',
                 description = kmlDescription(rectangleInfo.options),
                 descriptionCdata = ownerDocument.createCDATASection(description);
-            this._addTextNode(placemarkNode, 'name', rectangleInfo.options.subCell + ' ' + rectangleInfo.options.clusterName);
+            this._addTextNode(placemarkNode, 'name', rectangleInfo.options.subCell + (rectangleInfo.options.clusterName ? ' ' + rectangleInfo.options.clusterName : ''));
             descriptionNode.appendChild(descriptionCdata);
             placemarkNode.appendChild(descriptionNode);
             if (rectangleInfo.isReviewed()) {
@@ -543,6 +544,10 @@ var BirdCount = BirdCount || (function() {
     return {
         BirdMap: BirdMap,
         createMap: function(options) {
+            var defaults = {
+                sheets: '1,2,3'
+            };
+            options = _.extend(defaults, options);
             var map = new BirdCount.BirdMap({
                 zoom: 10,
                 mapContainerId: options.mapContainerId,
