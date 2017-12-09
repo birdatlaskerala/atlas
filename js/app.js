@@ -23,7 +23,8 @@
 
     var app = $.sammy('#main', function () {
         this.get('#/', function (context) {
-            this.redirect("#/kerala/thiruvananthapuram");
+            var first = $('ul.nav a:first').attr('href');
+            this.redirect(first);
         });
 
         this.get('#/kerala/:district', function (context) {
