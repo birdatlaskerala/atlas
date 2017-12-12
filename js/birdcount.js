@@ -31,6 +31,9 @@ var BirdCount = BirdCount || (function () {
               </ul> \
             </div>'),
 
+        NS_KML = 'http://www.opengis.net/kml/2.2',
+        NS_GX = 'http://www.google.com/kml/ext/2.2',
+
         RectangleInfo = function (options) {
             this.options = _.extend({
                 subCell: null,
@@ -386,9 +389,9 @@ var BirdCount = BirdCount || (function () {
             this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.customMapControls[0]);
         },
 
-        _addTextNode: function (parentNode, elem, value) {
+        _addTextNode: function (parentNode, elem, value, ns) {
             var ownerDocument = parentNode.ownerDocument,
-                node = ownerDocument.createElement(elem),
+                node = ownerDocument.createElementNS(ns, elem),
                 txtNode = ownerDocument.createTextNode("");
             txtNode.nodeValue = value;
             node.appendChild(txtNode);
@@ -397,13 +400,13 @@ var BirdCount = BirdCount || (function () {
 
         _addKmlStyles: function (documentNode, id, color) {
             var ownerDocument = documentNode.ownerDocument,
-                styleNode = ownerDocument.createElement("Style"),
-                lineStyleNode = ownerDocument.createElement("LineStyle"),
-                polyStyleNode = ownerDocument.createElement("PolyStyle");
-            this._addTextNode(lineStyleNode, 'color', '641400FF');
-            this._addTextNode(lineStyleNode, 'width', '1');
+                styleNode = ownerDocument.createElementNS(NS_KML, "Style"),
+                lineStyleNode = ownerDocument.createElementNS(NS_KML, "LineStyle"),
+                polyStyleNode = ownerDocument.createElementNS(NS_KML, "PolyStyle");
+            this._addTextNode(lineStyleNode, 'color', '641400FF', NS_KML);
+            this._addTextNode(lineStyleNode, 'width', '1', NS_KML);
             styleNode.appendChild(lineStyleNode);
-            this._addTextNode(polyStyleNode, 'color', color);
+            this._addTextNode(polyStyleNode, 'color', color, NS_KML);
             styleNode.appendChild(polyStyleNode);
             styleNode.setAttribute("id", id);
             documentNode.appendChild(styleNode);
@@ -428,19 +431,19 @@ var BirdCount = BirdCount || (function () {
 
         addPlacemark: function (documentNode, options) {
             var ownerDocument = documentNode.ownerDocument,
-                placemarkNode = ownerDocument.createElement('Placemark'),
-                descriptionNode = ownerDocument.createElement('description'),
-                polygonNode = ownerDocument.createElement('Polygon'),
-                outerBoundaryNode = ownerDocument.createElement('outerBoundaryIs'),
-                linearRingNode = ownerDocument.createElement('LinearRing'),
+                placemarkNode = ownerDocument.createElementNS(NS_KML, 'Placemark'),
+                descriptionNode = ownerDocument.createElementNS(NS_KML, 'description'),
+                polygonNode = ownerDocument.createElementNS(NS_KML, 'Polygon'),
+                outerBoundaryNode = ownerDocument.createElementNS(NS_KML, 'outerBoundaryIs'),
+                linearRingNode = ownerDocument.createElementNS(NS_KML, 'LinearRing'),
                 descriptionCdata = ownerDocument.createCDATASection(options.description);
-            this._addTextNode(placemarkNode, 'name', options.name);
+            this._addTextNode(placemarkNode, 'name', options.name, NS_KML);
             descriptionNode.appendChild(descriptionCdata);
             placemarkNode.appendChild(descriptionNode);
 
-            this._addTextNode(placemarkNode, 'styleUrl', '#' + options.style);
-            this._addTextNode(linearRingNode, 'coordinates', options.pathString);
-            this._addTextNode(polygonNode, "gx:drawOrder", options.drawOrder);
+            this._addTextNode(placemarkNode, 'styleUrl', '#' + options.style, NS_KML);
+            this._addTextNode(linearRingNode, 'coordinates', options.pathString, NS_KML);
+            this._addTextNode(polygonNode, "gx:drawOrder", options.drawOrder, NS_GX);
             outerBoundaryNode.appendChild(linearRingNode);
             polygonNode.appendChild(outerBoundaryNode);
             placemarkNode.appendChild(polygonNode);
@@ -455,7 +458,7 @@ var BirdCount = BirdCount || (function () {
                 serializer = new XMLSerializer(),
                 documentNode = xmlDoc.getElementsByTagName("Document")[0];
 
-            this._addTextNode(documentNode, 'name', this.options.name);
+            this._addTextNode(documentNode, 'name', this.options.name, NS_KML);
             this._addKmlStyles(documentNode, 'reviewed', '99ff33ba');
             this._addKmlStyles(documentNode, 'status-1', '99b0b0b0');
             this._addKmlStyles(documentNode, 'status-2', '99808080');
