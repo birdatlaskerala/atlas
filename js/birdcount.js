@@ -24,7 +24,7 @@ var BirdCount = BirdCount || (function () {
               <ul class="dropdown-menu dropdown-menu-right"> \
                 <li><button type="button" class="btn btn-sm exportKmlBtn" title="Export"><span class="glyphicon glyphicon-download-alt"></span></button> \
                     <%if (locationAvailable){%><button type="button" class="btn btn-sm gotoCurrentLocation" title="Go to Current Location"><span class="glyphicon glyphicon-record"></span></button><%}%> \
-                    <button type="button" class="btn btn-sm districtCenter" title="Go to Center of District"><span class="glyphicon glyphicon-flag"></span></button> \
+                    <button type="button" class="btn btn-sm districtCenter" title="Re-Centre"><span class="glyphicon glyphicon-flag"></span></button> \
                 </li> \
                 <%if (locationAvailable){%><li><label><input type="checkbox" class="locationChkBox"/> Show Location</label></li><%}%> \
                 <li><label><input type="checkbox" class="clusterChkBox"/> Show Clusters</label></li> \
