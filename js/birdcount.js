@@ -75,6 +75,22 @@ var BirdCount = BirdCount || (function () {
                 : false;
         },
 
+        getStrokeWeight: function () {
+            if (this.isReviewed()) {
+                return 1;
+            }
+
+            switch (this.getValue('priority')) {
+                case 'Highest':
+                    return 4;
+                case 'High':
+                    return 4;
+                default:
+                    return 1;
+            }
+			
+        },
+
         getFillColor: function () {
             if (this.isReviewed()) {
                 return '#ba33ff';
