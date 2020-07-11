@@ -313,8 +313,8 @@ var BirdCount = BirdCount || (function () {
             _(this.rectangleInfos).each(function (rectangleInfo) {
                 var rectangle = new google.maps.Rectangle({
                         strokeColor: '#505050',
-                        strokeOpacity: rectangleInfo.getStrokeWeight(),
-                        strokeWeight: 1,
+                        strokeOpacity: 0.8,
+                        strokeWeight: rectangleInfo.getStrokeWeight(),
                         fillColor: rectangleInfo.getFillColor(),
                         fillOpacity: rectangleInfo.getFillOpacity(),
                         map: this.map,
