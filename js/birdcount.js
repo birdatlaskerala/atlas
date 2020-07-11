@@ -43,6 +43,7 @@ var BirdCount = BirdCount || (function () {
                 owner: null,
                 listUrl: {},
                 reviewed: 'no',
+		priority: null,
                 status: 0
             }, options);
         },
@@ -271,6 +272,7 @@ var BirdCount = BirdCount || (function () {
                 if (rectangleInfo) {
                     rectangleInfo.setValue('reviewed', row.G);
                     rectangleInfo.setValue('status', row.H);
+		    rectangleInfo.setValue('priority',row.I);
                     rectangleInfo.setValue('listUrl', {
                         1: this._fixPartialBirdListURL(row.C),
                         2: this._fixPartialBirdListURL(row.D),
@@ -311,7 +313,7 @@ var BirdCount = BirdCount || (function () {
             _(this.rectangleInfos).each(function (rectangleInfo) {
                 var rectangle = new google.maps.Rectangle({
                         strokeColor: '#505050',
-                        strokeOpacity: 0.8,
+                        strokeOpacity: rectangleInfo.getStrokeWeight(),
                         strokeWeight: 1,
                         fillColor: rectangleInfo.getFillColor(),
                         fillOpacity: rectangleInfo.getFillOpacity(),
