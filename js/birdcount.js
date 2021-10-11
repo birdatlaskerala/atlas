@@ -2,7 +2,7 @@
  * Author vj
  * Licensed under MIT license.
  */
-const BirdCount = BirdCount || (function () {
+const BirdCount = (function () {
     const $ = jQuery, //wp noConflicts $. Capture $ in this scope
         CELL_PATTERN = /([A-Z]+)(\d+)/,
         REVIEWED_PATTERN = ['yes', 'y', 'reviewed'],
