@@ -2,8 +2,8 @@
  * Author vj
  * Licensed under MIT license.
  */
-var BirdCount = BirdCount || (function () {
-    var $ = jQuery, //wp noConflicts $. Capture $ in this scope
+const BirdCount = BirdCount || (function () {
+    const $ = jQuery, //wp noConflicts $. Capture $ in this scope
         CELL_PATTERN = /([A-Z]+)(\d+)/,
         REVIEWED_PATTERN = ['yes', 'y', 'reviewed'],
         infoBoxTemplate = _.template('<span><b><%=clusterName%></b></span>' +
@@ -43,6 +43,7 @@ var BirdCount = BirdCount || (function () {
                 owner: null,
                 listUrl: {},
                 reviewed: 'no',
+                priority: null,
                 status: 0
             }, options);
         },
@@ -73,6 +74,22 @@ var BirdCount = BirdCount || (function () {
             return this.getValue('reviewed')
                 ? _.indexOf(REVIEWED_PATTERN, this.getValue('reviewed').toLowerCase()) >= 0
                 : false;
+        },
+
+        getStrokeWeight: function () {
+            if (this.isReviewed()) {
+                return 1;
+            }
+
+            switch (this.getValue('priority')) {
+                case 'Highest':
+                    return 4;
+                case 'High':
+                    return 4;
+                default:
+                    return 1;
+            }
+
         },
 
         getFillColor: function () {
@@ -111,57 +128,33 @@ var BirdCount = BirdCount || (function () {
         customMapControls: null,
         geoLocation: new GeoLocationMarker.GeoLocationMarker(),
 
+        getSheetData: function (page, sheetData, sheetDataKey, drawMapAfter) {
+            $.ajax({
+                url: this.getMapDataUrl(page),
+                jsonp: "callback",
+                dataType: "jsonp",
+                context: this,
+                success: function (response) {
+                    if (response.error) {
+                        const message = response.error.code === 403
+                            ? "The application does not have access to district data."
+                            : response.error.message;
+                        this.options.alert(message);
+                        return;
+                    }
+                    sheetData[sheetDataKey] = this._parseRows(response.values);
+                    drawMapAfter();
+                }
+            });
+        },
+
         render: function () {
-            var sheetData = {},
+            const sheetData = {},
                 drawMapAfter = _.after(3, _.bind(this.drawMap, this, sheetData));
 
-            $.ajax({
-                url: this.getMapDataUrl(this.options.sheets[0]),
-                jsonp: "callback",
-                dataType: "jsonp",
-                context: this,
-                success: function (response) {
-                    if (!/^Coordinates/.test(response.feed.title.$t)) {
-                        if (this.options.alert) {
-                            this.options.alert();
-                        }
-                    }
-                    sheetData['coordinates'] = this._parseRows(response.feed.entry);
-                    drawMapAfter();
-                }
-            });
-
-            $.ajax({
-                url: this.getMapDataUrl(this.options.sheets[2]),
-                jsonp: "callback",
-                dataType: "jsonp",
-                context: this,
-                success: function (response) {
-                    if (!/^Birds/.test(response.feed.title.$t)) {
-                        if (this.options.alert) {
-                            this.options.alert();
-                        }
-                    }
-                    sheetData['status'] = this._parseRows(response.feed.entry);
-                    drawMapAfter();
-                }
-            });
-
-            $.ajax({
-                url: this.getMapDataUrl(this.options.sheets[1]),
-                jsonp: "callback",
-                dataType: "jsonp",
-                context: this,
-                success: function (response) {
-                    if (!/^Planning/.test(response.feed.title.$t)) {
-                        if (this.options.alert) {
-                            this.options.alert();
-                        }
-                    }
-                    sheetData['planning'] = this._parseRows(response.feed.entry);
-                    drawMapAfter();
-                }
-            });
+            this.getSheetData("Coordinates", sheetData, "coordinates", drawMapAfter);
+            this.getSheetData("Birds Lists", sheetData, "status", drawMapAfter);
+            this.getSheetData("Planning", sheetData, "planning", drawMapAfter);
         },
 
         drawMap: function (sheetData) {
@@ -195,9 +188,9 @@ var BirdCount = BirdCount || (function () {
                     return rectangleInfo.getValue('clusterName');
                 })
                 .map(function (rectanglesInCluster, clusterName) {
-                    var latLongs = [];
+                    const latLongs = [];
                     _.each(rectanglesInCluster, function (rectangle) {
-                        var bounds = rectangle.getValue('bounds'),
+                        const bounds = rectangle.getValue('bounds'),
                             ne = bounds.getNorthEast(),
                             sw = bounds.getSouthWest(),
                             nw = new google.maps.LatLng(ne.lat(), sw.lng()),
@@ -223,10 +216,10 @@ var BirdCount = BirdCount || (function () {
         },
 
         _createMap: function (rows) {
-            var bounds = new google.maps.LatLngBounds();
+            const bounds = new google.maps.LatLngBounds();
             _(rows).each(function (row) {
-                bounds.extend(new google.maps.LatLng(row.C, row.B));
-                bounds.extend(new google.maps.LatLng(row.G, row.F));
+                bounds.extend(new google.maps.LatLng(row[2], row[1]));
+                bounds.extend(new google.maps.LatLng(row[6], row[5]));
             });
             this.center = bounds.getCenter();
             return new google.maps.Map(document.getElementById(this.options.mapContainerId), {
@@ -237,13 +230,13 @@ var BirdCount = BirdCount || (function () {
         },
 
         _createRectangleInfo: function (rows) {
-            var ret = {};
+            const ret = {};
             _(rows).each(function (row) {
-                ret[row.A] = new RectangleInfo({
+                ret[row[0]] = new RectangleInfo({
                     bounds: new google.maps.LatLngBounds(
-                        new google.maps.LatLng(row.C, row.B),
-                        new google.maps.LatLng(row.G, row.F)),
-                    subCell: row.A
+                        new google.maps.LatLng(row[2], row[1]),
+                        new google.maps.LatLng(row[6], row[5])),
+                    subCell: row[0]
                 });
             });
             return ret;
@@ -251,15 +244,16 @@ var BirdCount = BirdCount || (function () {
 
         processStatusData: function (rows) {
             _(rows).each(function (row, idx) {
-                var rectangleInfo = this.rectangleInfos[row.A];
+                const rectangleInfo = this.rectangleInfos[row[0]];
                 if (rectangleInfo) {
-                    rectangleInfo.setValue('reviewed', row.G);
-                    rectangleInfo.setValue('status', row.H);
+                    rectangleInfo.setValue('reviewed', row[6]);
+                    rectangleInfo.setValue('status', row[7]);
+                    rectangleInfo.setValue('priority', row[8]);
                     rectangleInfo.setValue('listUrl', {
-                        1: this._fixPartialBirdListURL(row.C),
-                        2: this._fixPartialBirdListURL(row.D),
-                        3: this._fixPartialBirdListURL(row.E),
-                        4: this._fixPartialBirdListURL(row.F)
+                        1: this._fixPartialBirdListURL(row[2]),
+                        2: this._fixPartialBirdListURL(row[3]),
+                        3: this._fixPartialBirdListURL(row[4]),
+                        4: this._fixPartialBirdListURL(row[5])
                     });
                 }
             }, this);
@@ -271,11 +265,11 @@ var BirdCount = BirdCount || (function () {
                 return row;
             });
             _(rows).each(function (row) {
-                var rectangleInfo = this.rectangleInfos[row.A];
+                const rectangleInfo = this.rectangleInfos[row[0]];
                 if (rectangleInfo) {
-                    rectangleInfo.setValue('clusterName', row.B);
-                    rectangleInfo.setValue('owner', row.F);
-                    rectangleInfo.setValue('site', row.C);
+                    rectangleInfo.setValue('clusterName', row[1]);
+                    rectangleInfo.setValue('owner', row[5]);
+                    rectangleInfo.setValue('site', row[2]);
                 }
             }, this);
         },
@@ -293,10 +287,10 @@ var BirdCount = BirdCount || (function () {
 
         _drawCoverageInfo: function () {
             _(this.rectangleInfos).each(function (rectangleInfo) {
-                var rectangle = new google.maps.Rectangle({
+                const rectangle = new google.maps.Rectangle({
                         strokeColor: '#505050',
                         strokeOpacity: 0.8,
-                        strokeWeight: 1,
+                        strokeWeight: rectangleInfo.getStrokeWeight(),
                         fillColor: rectangleInfo.getFillColor(),
                         fillOpacity: rectangleInfo.getFillOpacity(),
                         map: this.map,
@@ -328,14 +322,14 @@ var BirdCount = BirdCount || (function () {
         },
 
         _showInfoWindow: function (rectangleInfo) {
-            var content = infoBoxTemplate(rectangleInfo.options);
+            const content = infoBoxTemplate(rectangleInfo.options);
             this.infoBox.setContent(content);
             this.infoBox.setPosition(rectangleInfo.getValue('bounds').getCenter());
             this.infoBox.open(this.map);
         },
 
         _showHideLabels: function () {
-            var showLabel = this.map.getZoom() > 12;
+            const showLabel = this.map.getZoom() > 12;
             _(this.labels).each(function (label) {
                 label.setMap(showLabel ? this.map : null);
             }, this);
@@ -390,7 +384,7 @@ var BirdCount = BirdCount || (function () {
         },
 
         _addTextNode: function (parentNode, elem, value, ns) {
-            var ownerDocument = parentNode.ownerDocument,
+            const ownerDocument = parentNode.ownerDocument,
                 node = ownerDocument.createElementNS(ns, elem),
                 txtNode = ownerDocument.createTextNode("");
             txtNode.nodeValue = value;
@@ -399,7 +393,7 @@ var BirdCount = BirdCount || (function () {
         },
 
         _addKmlStyles: function (documentNode, id, color) {
-            var ownerDocument = documentNode.ownerDocument,
+            const ownerDocument = documentNode.ownerDocument,
                 styleNode = ownerDocument.createElementNS(NS_KML, "Style"),
                 lineStyleNode = ownerDocument.createElementNS(NS_KML, "LineStyle"),
                 polyStyleNode = ownerDocument.createElementNS(NS_KML, "PolyStyle");
@@ -413,10 +407,10 @@ var BirdCount = BirdCount || (function () {
         },
 
         polygonPathsFromBounds: function (bounds) {
-            var path = new google.maps.MVCArray(),
+            const path = new google.maps.MVCArray(),
                 ne = bounds.getNorthEast(),
-                sw = bounds.getSouthWest(),
-                pathString = '';
+                sw = bounds.getSouthWest();
+            let pathString = '';
             path.push(ne);
             path.push(new google.maps.LatLng(sw.lat(), ne.lng()));
             path.push(sw);
@@ -430,7 +424,7 @@ var BirdCount = BirdCount || (function () {
         },
 
         addPlacemark: function (documentNode, options) {
-            var ownerDocument = documentNode.ownerDocument,
+            const ownerDocument = documentNode.ownerDocument,
                 placemarkNode = ownerDocument.createElementNS(NS_KML, 'Placemark'),
                 descriptionNode = ownerDocument.createElementNS(NS_KML, 'description'),
                 polygonNode = ownerDocument.createElementNS(NS_KML, 'Polygon'),
@@ -451,8 +445,8 @@ var BirdCount = BirdCount || (function () {
         },
 
         createKml: function () {
-            var xmlString = '<kml xmlns="http://www.opengis.net/kml/2.2" ' +
-                'xmlns:gx="http://www.google.com/kml/ext/2.2"><Document/></kml>',
+            const xmlString = '<kml xmlns="http://www.opengis.net/kml/2.2" ' +
+                    'xmlns:gx="http://www.google.com/kml/ext/2.2"><Document/></kml>',
                 parser = new DOMParser(),
                 xmlDoc = parser.parseFromString(xmlString, "text/xml"),
                 serializer = new XMLSerializer(),
@@ -468,11 +462,11 @@ var BirdCount = BirdCount || (function () {
             this._addKmlStyles(documentNode, 'cluster', '66ff9900');
 
             _(this.rectangleInfos).each(function (rectangleInfo) {
-                var options = {
+                const options = {
                     pathString: this.polygonPathsFromBounds(rectangleInfo.options.bounds),
                     description: kmlDescription(rectangleInfo.options),
                     name: rectangleInfo.options.subCell + (rectangleInfo.options.clusterName ? ' ' + rectangleInfo.options.clusterName : ''),
-                    style : rectangleInfo.isReviewed() ? 'reviewed' : ('status-' + rectangleInfo.getValue('status')),
+                    style: rectangleInfo.isReviewed() ? 'reviewed' : ('status-' + rectangleInfo.getValue('status')),
                     drawOrder: 2
                 };
                 this.addPlacemark(documentNode, options);
@@ -480,12 +474,12 @@ var BirdCount = BirdCount || (function () {
 
             if (this.showCluster) {
                 _(this.clusterPolygons).each(function (clusterPolygon) {
-                    var pathString = '';
+                    let pathString = '';
                     clusterPolygon.polygon.getPath().forEach(function (latLng, idx) {
                         pathString += [latLng.lng(), latLng.lat(), 0].join(",");
                         pathString += ' ';
                     });
-                    var options = {
+                    const options = {
                         pathString: pathString,
                         description: '',
                         name: clusterPolygon.clusterName,
@@ -501,7 +495,7 @@ var BirdCount = BirdCount || (function () {
 
         _exportKml: function (e) {
             e.preventDefault();
-            var kmlString = this.createKml(),
+            const kmlString = this.createKml(),
                 bb = new Blob([kmlString], {type: 'text/plain'}),
                 url = window.URL.createObjectURL(bb),
                 a = document.createElement('a');
@@ -518,20 +512,7 @@ var BirdCount = BirdCount || (function () {
         },
 
         _parseRows: function (entries) {
-            var rows = [];
-            _(entries).each(function (entry) {
-                var cell = entry.title.$t,
-                    cellSplit = CELL_PATTERN.exec(cell),
-                    col = cellSplit[1],
-                    row = parseInt(cellSplit[2], 10),
-                    rowIdx = row - 2, //spreadsheet rows are 1 based. Also account for header row.
-                    rowObj = rows[rowIdx] || {};
-
-                if (row > 1) { //skip header row
-                    rowObj[col] = entry.content.$t;
-                    rows[rowIdx] = rowObj;
-                }
-            });
+            const [header, ...rows] = entries;
             return rows;
         },
 
@@ -540,11 +521,11 @@ var BirdCount = BirdCount || (function () {
                 return a.lat() != b.lat() ? a.lat() - b.lat() : a.lng() - b.lng();
             });
 
-            var n = points.length;
-            var hull = [];
+            const n = points.length;
+            const hull = [];
 
-            for (var i = 0; i < 2 * n; i++) {
-                var j = i < n ? i : 2 * n - 1 - i;
+            for (let i = 0; i < 2 * n; i++) {
+                const j = i < n ? i : 2 * n - 1 - i;
                 while (hull.length >= 2 && this.removeMiddle(hull[hull.length - 2], hull[hull.length - 1], points[j]))
                     hull.pop();
                 hull.push(points[j]);
@@ -555,30 +536,27 @@ var BirdCount = BirdCount || (function () {
         },
 
         removeMiddle: function (a, b, c) {
-            var cross = (a.lat() - b.lat()) * (c.lng() - b.lng()) - (a.lng() - b.lng()) * (c.lat() - b.lat());
-            var dot = (a.lat() - b.lat()) * (c.lat() - b.lat()) + (a.lng() - b.lng()) * (c.lng() - b.lng());
+            const cross = (a.lat() - b.lat()) * (c.lng() - b.lng()) - (a.lng() - b.lng()) * (c.lat() - b.lat());
+            const dot = (a.lat() - b.lat()) * (c.lat() - b.lat()) + (a.lng() - b.lng()) * (c.lng() - b.lng());
             return cross < 0 || cross == 0 && dot <= 0;
         },
 
         getMapDataUrl: function (page) {
-            return "https://spreadsheets.google.com/feeds/cells/" + this.options.mapSpreadSheetId + "/" + page + "/public/basic?alt=json-in-script";
+            return "https://sheets.googleapis.com/v4/spreadsheets/" + this.options.mapSpreadSheetId + "/values/" + page + "?key=" + API_KEY;
         }
     };
 
     return {
         BirdMap: BirdMap,
         createMap: function (options) {
-            var defaults = {
-                sheets: '1,2,3'
-            };
-            options = _.extend(defaults, options);
-            var map = new BirdCount.BirdMap({
+            options = _.extend({}, options);
+            const map = new BirdCount.BirdMap({
                 zoom: 10,
                 mapContainerId: options.mapContainerId,
                 mapSpreadSheetId: options.mapSpreadSheetId,
-                sheets: options.sheets.split(','),
                 name: options.name,
-                alert: function () {
+                alert: function (message) {
+                    $('.page-alert-box .modal-body').html('<p>' + message + '</p>')
                     $('.page-alert-box').modal('show');
                 }
             });
