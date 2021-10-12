@@ -128,10 +128,16 @@ const BirdCount = (function () {
         customMapControls: null,
         geoLocation: new GeoLocationMarker.GeoLocationMarker(),
 
-        getSheetData: function (page, sheetData, sheetDataKey, drawMapAfter) {
+        render: function () {
+            const spreadSheetUrl = "https://sheets.googleapis.com/v4/spreadsheets/" + this.options.mapSpreadSheetId + "/values:batchGet";
             $.ajax({
-                url: this.getMapDataUrl(page),
+                url: spreadSheetUrl,
                 jsonp: "callback",
+                data: {
+                    key: API_KEY,
+                    ranges: ["Coordinates", "Planning", "Birds Lists"]
+                },
+                traditional: true,
                 dataType: "jsonp",
                 context: this,
                 success: function (response) {
@@ -142,19 +148,17 @@ const BirdCount = (function () {
                         this.options.alert(message);
                         return;
                     }
-                    sheetData[sheetDataKey] = this._parseRows(response.values);
-                    drawMapAfter();
+                    const sheetData = {
+                        "coordinates": this._parseRows(response.valueRanges[0].values),
+                        "planning": this._parseRows(response.valueRanges[1].values),
+                        "status": this._parseRows(response.valueRanges[2].values)
+                    };
+                    this.drawMap(sheetData);
+                },
+                error: function(error) {
+                    console.log(error);
                 }
             });
-        },
-
-        render: function () {
-            const sheetData = {},
-                drawMapAfter = _.after(3, _.bind(this.drawMap, this, sheetData));
-
-            this.getSheetData("Coordinates", sheetData, "coordinates", drawMapAfter);
-            this.getSheetData("Birds Lists", sheetData, "status", drawMapAfter);
-            this.getSheetData("Planning", sheetData, "planning", drawMapAfter);
         },
 
         drawMap: function (sheetData) {
@@ -540,10 +544,6 @@ const BirdCount = (function () {
             const dot = (a.lat() - b.lat()) * (c.lat() - b.lat()) + (a.lng() - b.lng()) * (c.lng() - b.lng());
             return cross < 0 || cross == 0 && dot <= 0;
         },
-
-        getMapDataUrl: function (page) {
-            return "https://sheets.googleapis.com/v4/spreadsheets/" + this.options.mapSpreadSheetId + "/values/" + page + "?key=" + API_KEY;
-        }
     };
 
     return {
